@@ -1,8 +1,18 @@
 <template>
-  <div class="min-h-screen bg-black text-white font-ios flex overflow-hidden">
+  <div class="min-h-screen bg-black text-white font-ios flex overflow-hidden relative">
     
-    <aside :class="isSidebarCollapsed ? 'w-20' : 'w-72'" class="h-screen border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-[width] duration-300 ease-in-out relative shrink-0">
-      <button @click="isSidebarCollapsed = !isSidebarCollapsed" class="absolute -right-3 top-10 bg-white text-black rounded-full p-1.5 z-[60] hover:scale-110 transition-transform">
+    <transition name="fade">
+      <div v-if="showWelcome" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
+        <p class="text-zinc-600 uppercase tracking-[0.6em] text-[10px] mb-4 animate-pulse">System Access Granted</p>
+        <h2 class="text-5xl font-bold tracking-tighter">Welcome, Admin</h2>
+      </div>
+    </transition>
+
+    <aside 
+      :class="[isSidebarCollapsed ? 'w-20' : 'w-72', showWelcome ? 'opacity-5' : 'opacity-100']" 
+      class="h-screen border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 ease-in-out relative shrink-0"
+    >
+      <button @click="isSidebarCollapsed = !isSidebarCollapsed" class="absolute -right-3 top-10 bg-white text-black rounded-full p-1.5 z-[60] hover:scale-110 transition-transform shadow-xl">
         <svg class="w-3 h-3" :class="isSidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M15 19l-7-7 7-7" /></svg>
       </button>
 
@@ -34,15 +44,10 @@
       </div>
     </aside>
 
-    <main class="flex-1 h-screen overflow-y-auto p-8 md:p-16 relative z-10">
-      
-      <transition name="fade">
-        <div v-if="showWelcome" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
-          <p class="text-zinc-500 uppercase tracking-[0.5em] text-xs mb-4">Access Granted</p>
-          <h2 class="text-5xl font-bold tracking-tighter">Welcome, Admin</h2>
-        </div>
-      </transition>
-
+    <main 
+      :class="[showWelcome ? 'opacity-5' : 'opacity-100']"
+      class="flex-1 h-screen overflow-y-auto p-8 md:p-16 relative z-10 transition-opacity duration-1000"
+    >
       <header class="mb-16 flex justify-between items-end">
         <div>
           <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">System Online</p>
@@ -56,35 +61,43 @@
 
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div v-for="i in 3" :key="i" class="p-8 border border-white/10 rounded-2xl bg-zinc-900/50">
-            <h3 class="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Quick Stat {{ i }}</h3>
-            <p class="text-3xl font-bold">--</p>
+          <div v-for="i in 3" :key="i" class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Metric {{ i }}</h3>
+            <p class="text-3xl font-bold tracking-tighter text-zinc-400">---</p>
           </div>
         </div>
 
         <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-8">
           <div class="flex flex-col md:flex-row gap-4 items-center">
             <div class="relative w-full max-w-xl">
-              <input v-model="searchQuery" type="text" placeholder="Search books..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full outline-none focus:border-white/30" />
+              <input v-model="searchQuery" type="text" placeholder="Search library inventory..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full outline-none focus:border-white/30 transition-all" />
             </div>
             <div class="flex gap-2 w-full md:w-auto">
-              <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="New Title" class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full md:w-64 outline-none focus:border-white/30" />
-              <button @click="addBook" class="bg-white text-black px-8 rounded-xl font-bold hover:bg-zinc-200">Add</button>
+              <input 
+                v-model="newBookTitle" 
+                @keyup.enter="addBook" 
+                type="text" 
+                placeholder="Enter book title" 
+                class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full md:w-64 outline-none focus:border-white/30 transition-all" 
+              />
+              <button @click="addBook" class="bg-white text-black px-8 rounded-xl font-bold hover:bg-zinc-200 active:scale-95 transition-all">
+                Add to Database
+              </button>
             </div>
           </div>
-          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/50">
-            <table class="w-full text-left">
+          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
+            <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] border-b border-white/5">
-                  <th class="p-8">Book Identity</th>
-                  <th class="p-8 text-right">Control</th>
+                  <th class="p-8">Book Title</th>
+                  <th class="p-8 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-white/[0.03]">
-                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
-                  <td class="p-8 font-medium">{{ book.title }}</td>
+                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02] transition-colors">
+                  <td class="p-8 font-medium tracking-tight">{{ book.title }}</td>
                   <td class="p-8 text-right">
-                    <button @click="deleteBook(book.id)" class="text-red-500 font-bold text-xs uppercase tracking-widest">Delete</button>
+                    <button @click="deleteBook(book.id)" class="text-red-500/50 hover:text-red-500 font-bold text-[10px] uppercase tracking-widest transition-colors">Remove</button>
                   </td>
                 </tr>
               </tbody>
@@ -93,23 +106,23 @@
         </section>
 
         <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl">
-          <p class="text-zinc-500">System Preferences & Configuration</p>
+          <p class="text-zinc-500 font-medium">System settings and firebase credentials.</p>
         </div>
 
         <div v-else-if="activeTab === 'notifications'" :key="'notifications'" class="p-10 border border-white/10 rounded-2xl">
-          <p class="text-zinc-500">No new alerts at this time.</p>
+          <p class="text-zinc-500 font-medium">No system notifications.</p>
         </div>
       </transition>
     </main>
 
     <transition name="fade">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 px-6">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-2">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8">Are you sure you want to end your session?</p>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
+          <p class="text-zinc-500 text-sm mb-8">This will end your librarian session.</p>
           <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
-            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold">Logout</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold hover:bg-white/5">Cancel</button>
+            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Logout</button>
           </div>
         </div>
       </div>
@@ -124,8 +137,8 @@ import { db } from './lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
 const books = ref([]);
-const activeTab = ref('home'); // Default page is Home
-const showWelcome = ref(true); // Welcome text active on start
+const activeTab = ref('home');
+const showWelcome = ref(true);
 const showLogoutModal = ref(false);
 const isSidebarCollapsed = ref(false);
 const newBookTitle = ref('');
@@ -143,6 +156,7 @@ const filteredBooks = computed(() => {
   return books.value.filter(book => book.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
+// REAL-TIME LISTENER FOR 'books' COLLECTION
 const loadBooks = () => {
   const q = query(collection(db, "books"), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
@@ -150,26 +164,30 @@ const loadBooks = () => {
   });
 };
 
+// ADD TO 'books' COLLECTION
 const addBook = async () => {
   if (!newBookTitle.value.trim()) return;
   try {
-    await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() });
+    // This adds the title to your Firebase "books" collection
+    await addDoc(collection(db, "books"), { 
+      title: newBookTitle.value, 
+      createdAt: serverTimestamp() 
+    });
     newBookTitle.value = '';
-  } catch (err) { alert(err.message); }
+  } catch (err) { alert("Firebase Error: " + err.message); }
 };
 
 const deleteBook = async (id) => {
-  if (confirm("Delete book?")) await deleteDoc(doc(db, "books", id));
+  if (confirm("Delete this book from the system?")) await deleteDoc(doc(db, "books", id));
 };
 
 onMounted(() => {
   loadBooks();
-  // Welcome screen timer: 2.5 seconds
-  setTimeout(() => { showWelcome.value = false; }, 2500);
+  setTimeout(() => { showWelcome.value = false; }, 3000);
 });
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.8s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
