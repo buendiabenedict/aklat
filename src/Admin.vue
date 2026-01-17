@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-black text-white font-ios flex overflow-hidden relative">
+  <div class="fixed inset-0 bg-black text-white font-ios flex overflow-hidden w-full h-full">
     
     <transition name="fade">
       <div v-if="showWelcome" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
@@ -10,7 +10,7 @@
 
     <aside 
       :class="[isSidebarCollapsed ? 'w-20' : 'w-72', showWelcome ? 'opacity-5' : 'opacity-100']" 
-      class="h-screen border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 ease-in-out relative shrink-0"
+      class="h-full border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 ease-in-out shrink-0"
     >
       <button @click="isSidebarCollapsed = !isSidebarCollapsed" class="absolute -right-3 top-10 bg-white text-black rounded-full p-1.5 z-[60] hover:scale-110 transition-transform shadow-xl border border-black/10">
         <svg class="w-3 h-3" :class="isSidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M15 19l-7-7 7-7" /></svg>
@@ -23,7 +23,7 @@
         </transition>
       </div>
 
-      <nav class="flex-1 px-3 space-y-2 mt-4">
+      <nav class="flex-1 px-3 space-y-2 mt-4 overflow-y-auto">
         <button v-for="item in navItems" :key="item.name" @click="activeTab = item.id"
           class="w-full flex items-center h-14 rounded-xl transition-all duration-200"
           :class="[ activeTab === item.id ? 'bg-white text-black' : 'text-zinc-500 hover:text-white', isSidebarCollapsed ? 'justify-center' : 'px-4' ]">
@@ -42,19 +42,19 @@
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
           </div>
-          <p v-if="!isSidebarCollapsed" class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">DB: {{ dbStatus }}</p>
+          <p v-if="!isSidebarCollapsed" class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
         </div>
 
         <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all group">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          <span v-if="!isSidebarCollapsed" class="ml-3 font-bold text-xs uppercase tracking-widest">Sign Out</span>
+          <span v-if="!isSidebarCollapsed" class="ml-3 font-bold text-xs uppercase tracking-widest whitespace-nowrap">Sign Out</span>
         </button>
       </div>
     </aside>
 
     <main 
       :class="[showWelcome ? 'opacity-5' : 'opacity-100']"
-      class="flex-1 h-screen overflow-y-auto p-8 md:p-16 relative z-10 transition-opacity duration-1000"
+      class="flex-1 h-full overflow-y-auto p-8 md:p-16 relative z-10 transition-opacity duration-1000 bg-black"
     >
       <header class="mb-16 flex justify-between items-start">
         <div>
@@ -120,11 +120,11 @@
             <p class="text-zinc-400">Database synchronization in progress...</p>
           </div>
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="user in users" :key="user.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex items-center gap-4 group hover:border-white/20 transition-all">
-              <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center font-bold text-lg border border-white/5 group-hover:bg-white group-hover:text-black transition-all">
+            <div v-for="user in users" :key="user.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex items-center gap-4 group hover:border-white/20 transition-all overflow-hidden">
+              <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center font-bold text-lg border border-white/5 group-hover:bg-white group-hover:text-black transition-all shrink-0">
                 {{ user.email ? user.email[0].toUpperCase() : 'U' }}
               </div>
-              <div class="overflow-hidden">
+              <div class="min-w-0">
                 <p class="font-bold truncate text-sm">{{ user.email }}</p>
                 <p class="text-[9px] text-zinc-600 uppercase tracking-[0.2em] font-black mt-1">{{ user.role || 'Member' }}</p>
               </div>
@@ -203,9 +203,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { db } from './lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, enableNetwork, disableNetwork } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
-// State
 const books = ref([]);
 const users = ref([]);
 const activeTab = ref('home');
@@ -233,14 +232,12 @@ const filteredBooks = computed(() => {
   return books.value.filter(book => book.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
-// FUNCTIONS
 const updateTime = () => {
   const now = new Date();
   currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
 const checkStatus = () => {
-  // Simple check using navigator online status + Firebase connection listener
   dbStatus.value = navigator.onLine ? 'online' : 'offline';
 };
 
