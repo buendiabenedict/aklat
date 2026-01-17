@@ -46,26 +46,43 @@
           <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab }}</h2>
         </div>
         <div class="text-right">
-          <p class="text-white font-bold text-2xl tracking-tighter">{{ books.length }}</p>
-          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Total Books</p>
+          <p class="text-white font-bold text-4xl tracking-tighter">{{ filteredBooks.length }}</p>
+          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Books Found</p>
         </div>
       </header>
 
       <section v-if="activeTab === 'inventory'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div class="flex flex-col md:flex-row gap-4">
-          <input 
-            v-model="newBookTitle" 
-            @keyup.enter="addBook"
-            type="text" 
-            placeholder="Search or add new book title..." 
-            class="bg-zinc-900/50 border border-white/10 rounded-[1.5rem] py-5 px-8 text-white w-full max-w-xl outline-none focus:border-white/30 focus:bg-zinc-900 transition-all shadow-inner" 
-          />
-          <button @click="addBook" :disabled="isProcessing" class="bg-white text-black px-10 rounded-[1.5rem] font-bold hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-50">
-            {{ isProcessing ? 'Adding...' : 'Add to Collection' }}
-          </button>
+        
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+          <div class="relative w-full max-w-xl group">
+             <div class="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+             </div>
+             <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Search by book title..." 
+              class="bg-zinc-900/50 border border-white/10 rounded-[1.5rem] py-5 pl-16 pr-8 text-white w-full outline-none focus:border-white/30 focus:bg-zinc-900 transition-all shadow-inner" 
+            />
+          </div>
+          
+          <div class="h-10 w-[1px] bg-white/10 hidden md:block"></div>
+
+          <div class="flex gap-2 w-full md:w-auto">
+            <input 
+              v-model="newBookTitle" 
+              @keyup.enter="addBook"
+              type="text" 
+              placeholder="New Book Title" 
+              class="bg-zinc-900/50 border border-white/10 rounded-[1.5rem] py-5 px-6 text-white w-full md:w-64 outline-none focus:border-white/30 transition-all" 
+            />
+            <button @click="addBook" :disabled="isProcessing" class="bg-white text-black px-8 rounded-[1.5rem] font-bold hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-50 shrink-0">
+              Add
+            </button>
+          </div>
         </div>
 
-        <div class="bg-zinc-900/30 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
+        <div class="bg-zinc-900/30 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-md shadow-2xl">
           <table class="w-full text-left">
             <thead>
               <tr class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] border-b border-white/5">
@@ -75,25 +92,26 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-white/[0.03]">
-              <tr v-for="book in books" :key="book.id" class="group hover:bg-white/[0.02] transition-colors">
+              <tr v-for="book in filteredBooks" :key="book.id" class="group hover:bg-white/[0.02] transition-colors">
                 <td class="p-10">
                   <div class="flex items-center gap-4">
-                    <div class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                    <span class="text-lg font-medium tracking-tight">{{ book.title }}</span>
+                    <div class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse"></div>
+                    <span class="text-lg font-medium tracking-tight group-hover:translate-x-1 transition-transform">{{ book.title }}</span>
                   </div>
                 </td>
-                <td class="p-10 text-zinc-500 text-sm font-medium">
-                  {{ book.createdAt?.toDate().toLocaleDateString() || 'Just now' }}
+                <td class="p-10 text-zinc-500 text-sm font-medium italic">
+                  {{ book.createdAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) || 'Pending...' }}
                 </td>
                 <td class="p-10 text-right">
-                  <button @click="deleteBook(book.id)" class="opacity-0 group-hover:opacity-100 bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                  <button @click="deleteBook(book.id)" class="opacity-0 group-hover:opacity-100 bg-red-500/10 text-red-500 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-lg">
                     Remove
                   </button>
                 </td>
               </tr>
-              <tr v-if="books.length === 0">
-                <td colspan="3" class="p-20 text-center text-zinc-600 font-bold uppercase tracking-[0.5em] text-xs">
-                  Library is empty
+              <tr v-if="filteredBooks.length === 0">
+                <td colspan="3" class="p-24 text-center">
+                  <p class="text-zinc-600 font-bold uppercase tracking-[0.5em] text-xs">No matching books found</p>
+                  <p class="text-zinc-800 text-[10px] mt-2 tracking-widest">Try a different search term or add a new book.</p>
                 </td>
               </tr>
             </tbody>
@@ -105,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { db } from './lib/firebase';
 import { 
   collection, 
@@ -121,6 +139,7 @@ import {
 const books = ref([]);
 const activeTab = ref('inventory');
 const newBookTitle = ref('');
+const searchQuery = ref('');
 const isSidebarCollapsed = ref(false);
 const isProcessing = ref(false);
 
@@ -129,7 +148,15 @@ const navItems = [
   { id: 'borrows', name: 'Records', path: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }
 ];
 
-// REAL-TIME LISTENER: Kusa itong mag-uupdate kapag may nabago sa Firestore
+// SEARCH LOGIC: Computed property para hindi kailangang i-refresh ang database
+const filteredBooks = computed(() => {
+  if (!searchQuery.value) return books.value;
+  return books.value.filter(book => 
+    book.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// REAL-TIME LISTENER
 const loadBooks = () => {
   const q = query(collection(db, "books"), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
@@ -147,7 +174,7 @@ const addBook = async () => {
   try {
     await addDoc(collection(db, "books"), {
       title: newBookTitle.value,
-      createdAt: serverTimestamp() // Time mula sa Google server
+      createdAt: serverTimestamp()
     });
     newBookTitle.value = '';
   } catch (err) {
@@ -158,7 +185,7 @@ const addBook = async () => {
 };
 
 const deleteBook = async (id) => {
-  if (!confirm("Are you sure you want to remove this book?")) return;
+  if (!confirm("Confirm removal of this book from cloud?")) return;
   try {
     await deleteDoc(doc(db, "books", id));
   } catch (err) {
