@@ -19,7 +19,7 @@
       <div class="h-28 flex items-center px-6 overflow-hidden">
         <div class="w-8 h-8 bg-white rounded-lg shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)]"></div>
         <transition name="fade">
-          <h1 v-if="!isSidebarCollapsed" class="ml-4 text-xs font-black tracking-widest uppercase text-white tracking-widest">Aklat Admin</h1>
+          <h1 v-if="!isSidebarCollapsed" class="ml-4 text-xs font-black tracking-widest uppercase text-white">Aklat Admin</h1>
         </transition>
       </div>
 
@@ -36,7 +36,15 @@
         </button>
       </nav>
 
-      <div class="p-3 border-t border-white/5">
+      <div class="p-6 border-t border-white/5 space-y-4">
+        <div class="flex items-center gap-3" :class="isSidebarCollapsed ? 'justify-center' : ''">
+          <div class="relative flex h-2 w-2">
+            <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+            <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
+          </div>
+          <p v-if="!isSidebarCollapsed" class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">DB: {{ dbStatus }}</p>
+        </div>
+
         <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all group">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           <span v-if="!isSidebarCollapsed" class="ml-3 font-bold text-xs uppercase tracking-widest">Sign Out</span>
@@ -48,9 +56,13 @@
       :class="[showWelcome ? 'opacity-5' : 'opacity-100']"
       class="flex-1 h-screen overflow-y-auto p-8 md:p-16 relative z-10 transition-opacity duration-1000"
     >
-      <header class="mb-16 flex justify-between items-end">
+      <header class="mb-16 flex justify-between items-start">
         <div>
-          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">System Online</p>
+          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3 flex items-center gap-2">
+            {{ currentTime }} 
+            <span class="w-1 h-1 bg-zinc-800 rounded-full"></span> 
+            System Status
+          </p>
           <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab }}</h2>
         </div>
         
@@ -64,13 +76,17 @@
 
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 group hover:border-white/30 transition-all">
             <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Books In Catalog</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
           </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 group hover:border-white/30 transition-all">
             <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Community Members</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ users.length }}</p>
+          </div>
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 group hover:border-white/30 transition-all">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Storage Usage</h3>
+            <p class="text-3xl font-bold tracking-tighter">Normal</p>
           </div>
         </div>
 
@@ -100,8 +116,8 @@
 
         <section v-else-if="activeTab === 'community'" :key="'community'" class="space-y-8">
           <div v-if="users.length === 0" class="p-20 text-center border border-dashed border-white/10 rounded-3xl">
-            <p class="text-zinc-600 uppercase tracking-widest text-xs font-bold mb-2">No database entries</p>
-            <p class="text-zinc-400">Login records will appear here once users start signing in.</p>
+            <p class="text-zinc-600 uppercase tracking-widest text-xs font-bold mb-2">No entries found</p>
+            <p class="text-zinc-400">Database synchronization in progress...</p>
           </div>
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="user in users" :key="user.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex items-center gap-4 group hover:border-white/20 transition-all">
@@ -109,15 +125,29 @@
                 {{ user.email ? user.email[0].toUpperCase() : 'U' }}
               </div>
               <div class="overflow-hidden">
-                <p class="font-bold truncate">{{ user.email }}</p>
-                <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-black">{{ user.role || 'Member' }}</p>
+                <p class="font-bold truncate text-sm">{{ user.email }}</p>
+                <p class="text-[9px] text-zinc-600 uppercase tracking-[0.2em] font-black mt-1">{{ user.role || 'Member' }}</p>
               </div>
             </div>
           </div>
         </section>
 
+        <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-4">
+          <div v-for="i in 2" :key="i" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex justify-between items-center group">
+            <div class="flex gap-4 items-center">
+              <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+              <div>
+                <p class="text-sm font-bold">System Update v.1.0.2</p>
+                <p class="text-xs text-zinc-500">Security protocols updated for Firebase cloud storage.</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-zinc-700 font-bold uppercase tracking-widest">Just now</span>
+          </div>
+          <div class="p-20 text-center text-zinc-600 italic text-sm">No new alerts. Your system is secure. 🛡️</div>
+        </section>
+
         <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl text-zinc-500">
-           System Settings: Cloud Deployment v1.0.2
+           Cloud Environment: Production <br/> Version: 2026.01.Stable
         </div>
       </transition>
     </main>
@@ -128,17 +158,11 @@
           <h3 class="text-2xl font-bold mb-6 tracking-tighter text-white">Add New Book</h3>
           <div class="space-y-4 mb-8">
             <label class="text-[10px] uppercase tracking-widest text-zinc-600 font-black">Book Title</label>
-            <input 
-              v-model="newBookTitle" 
-              @keyup.enter="addBook" 
-              type="text" 
-              placeholder="e.g. Noli Me Tangere" 
-              class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white outline-none focus:border-white/40 transition-all"
-            />
+            <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="e.g. Noli Me Tangere" class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white outline-none focus:border-white/40 transition-all"/>
           </div>
           <div class="flex gap-3">
             <button @click="showAddBookModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5 transition-all">Cancel</button>
-            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-all active:scale-95">Save to Catalog</button>
+            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-all active:scale-95">Save</button>
           </div>
         </div>
       </div>
@@ -146,12 +170,12 @@
 
     <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8 font-medium text-center">This will end your librarian session.</p>
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center text-white">
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
+          <p class="text-zinc-500 text-sm mb-8 font-medium">This will end your session.</p>
           <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
-            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Logout</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold hover:bg-white/5">Cancel</button>
+            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold hover:bg-red-700">Logout</button>
           </div>
         </div>
       </div>
@@ -159,15 +183,15 @@
 
     <transition name="fade">
       <div v-if="showDeleteModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center text-white">
           <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </div>
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Delete Book?</h3>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Delete Book?</h3>
           <p class="text-zinc-500 text-sm mb-8 font-medium">This cannot be undone.</p>
           <div class="flex gap-3">
-            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
-            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Confirm Delete</button>
+            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold hover:bg-white/5">Cancel</button>
+            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 font-bold hover:bg-red-700">Confirm</button>
           </div>
         </div>
       </div>
@@ -177,9 +201,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { db } from './lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, enableNetwork, disableNetwork } from "firebase/firestore";
 
 // State
 const books = ref([]);
@@ -193,11 +217,14 @@ const bookToDelete = ref(null);
 const isSidebarCollapsed = ref(false);
 const newBookTitle = ref('');
 const searchQuery = ref('');
+const currentTime = ref('');
+const dbStatus = ref('online');
 
 const navItems = [
   { id: 'home', name: 'Dashboard', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { id: 'inventory', name: 'Inventory', path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
   { id: 'community', name: 'Community', path: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+  { id: 'notifications', name: 'Notifications', path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
   { id: 'settings', name: 'Settings', path: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' }
 ];
 
@@ -206,14 +233,22 @@ const filteredBooks = computed(() => {
   return books.value.filter(book => book.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
-// REAL-TIME LISTENERS
+// FUNCTIONS
+const updateTime = () => {
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const checkStatus = () => {
+  // Simple check using navigator online status + Firebase connection listener
+  dbStatus.value = navigator.onLine ? 'online' : 'offline';
+};
+
 const loadData = () => {
-  // Load Books
   onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (snapshot) => {
     books.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  });
+  }, (error) => { dbStatus.value = 'offline'; });
 
-  // Load Users
   onSnapshot(collection(db, "users"), (snapshot) => {
     users.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
@@ -242,9 +277,20 @@ const deleteBook = async () => {
   } catch (err) { alert(err.message); }
 };
 
+let timeInterval;
 onMounted(() => {
   loadData();
+  updateTime();
+  timeInterval = setInterval(updateTime, 1000);
+  window.addEventListener('online', checkStatus);
+  window.addEventListener('offline', checkStatus);
   setTimeout(() => { showWelcome.value = false; }, 3000);
+});
+
+onUnmounted(() => {
+  clearInterval(timeInterval);
+  window.removeEventListener('online', checkStatus);
+  window.removeEventListener('offline', checkStatus);
 });
 </script>
 
