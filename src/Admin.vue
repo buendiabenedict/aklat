@@ -73,16 +73,8 @@
               <input v-model="searchQuery" type="text" placeholder="Search library inventory..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full outline-none focus:border-white/30 transition-all" />
             </div>
             <div class="flex gap-2 w-full md:w-auto">
-              <input 
-                v-model="newBookTitle" 
-                @keyup.enter="addBook" 
-                type="text" 
-                placeholder="Enter book title" 
-                class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full md:w-64 outline-none focus:border-white/30 transition-all" 
-              />
-              <button @click="addBook" class="bg-white text-black px-8 rounded-xl font-bold hover:bg-zinc-200 active:scale-95 transition-all">
-                Add to Database
-              </button>
+              <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="Enter book title" class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full md:w-64 outline-none focus:border-white/30 transition-all" />
+              <button @click="addBook" class="bg-white text-black px-8 rounded-xl font-bold hover:bg-zinc-200 active:scale-95 transition-all">Add</button>
             </div>
           </div>
           <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
@@ -97,7 +89,7 @@
                 <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02] transition-colors">
                   <td class="p-8 font-medium tracking-tight">{{ book.title }}</td>
                   <td class="p-8 text-right">
-                    <button @click="deleteBook(book.id)" class="text-red-500/50 hover:text-red-500 font-bold text-[10px] uppercase tracking-widest transition-colors">Remove</button>
+                    <button @click="confirmDelete(book.id)" class="text-red-500/50 hover:text-red-500 font-bold text-[10px] uppercase tracking-widest transition-colors">Remove</button>
                   </td>
                 </tr>
               </tbody>
@@ -105,24 +97,34 @@
           </div>
         </section>
 
-        <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl">
-          <p class="text-zinc-500 font-medium">System settings and firebase credentials.</p>
-        </div>
-
-        <div v-else-if="activeTab === 'notifications'" :key="'notifications'" class="p-10 border border-white/10 rounded-2xl">
-          <p class="text-zinc-500 font-medium">No system notifications.</p>
-        </div>
+        <div v-else :key="'other'" class="p-10 border border-white/10 rounded-2xl text-zinc-500">Section under development.</div>
       </transition>
     </main>
 
     <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8">This will end your librarian session.</p>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
+          <p class="text-zinc-500 text-sm mb-8 font-medium">This will end your librarian session.</p>
           <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold hover:bg-white/5">Cancel</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
             <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Logout</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
+          <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Delete Book?</h3>
+          <p class="text-zinc-500 text-sm mb-8 font-medium">This action cannot be undone. The book will be removed from the database.</p>
+          <div class="flex gap-3">
+            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
+            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Confirm Delete</button>
           </div>
         </div>
       </div>
@@ -136,10 +138,13 @@ import { ref, onMounted, computed } from 'vue';
 import { db } from './lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
+// State
 const books = ref([]);
 const activeTab = ref('home');
 const showWelcome = ref(true);
 const showLogoutModal = ref(false);
+const showDeleteModal = ref(false);
+const bookToDelete = ref(null); // Taga-hawak ng ID ng buburahin
 const isSidebarCollapsed = ref(false);
 const newBookTitle = ref('');
 const searchQuery = ref('');
@@ -156,7 +161,6 @@ const filteredBooks = computed(() => {
   return books.value.filter(book => book.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
-// REAL-TIME LISTENER FOR 'books' COLLECTION
 const loadBooks = () => {
   const q = query(collection(db, "books"), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
@@ -164,21 +168,29 @@ const loadBooks = () => {
   });
 };
 
-// ADD TO 'books' COLLECTION
 const addBook = async () => {
   if (!newBookTitle.value.trim()) return;
   try {
-    // This adds the title to your Firebase "books" collection
-    await addDoc(collection(db, "books"), { 
-      title: newBookTitle.value, 
-      createdAt: serverTimestamp() 
-    });
+    await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() });
     newBookTitle.value = '';
-  } catch (err) { alert("Firebase Error: " + err.message); }
+  } catch (err) { alert(err.message); }
 };
 
-const deleteBook = async (id) => {
-  if (confirm("Delete this book from the system?")) await deleteDoc(doc(db, "books", id));
+// MODAL DELETE LOGIC
+const confirmDelete = (id) => {
+  bookToDelete.value = id; // Itabi yung ID
+  showDeleteModal.value = true; // Labas ang Modal
+};
+
+const deleteBook = async () => {
+  if (!bookToDelete.value) return;
+  try {
+    await deleteDoc(doc(db, "books", bookToDelete.value));
+    showDeleteModal.value = false; // Tago ang Modal
+    bookToDelete.value = null; // Reset ID
+  } catch (err) {
+    alert("Error deleting book: " + err.message);
+  }
 };
 
 onMounted(() => {
@@ -188,6 +200,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.8s ease; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
