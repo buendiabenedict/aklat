@@ -9,45 +9,37 @@
     </transition>
 
     <aside 
-      :class="[isSidebarCollapsed ? 'w-20' : 'w-72', showWelcome ? 'opacity-5' : 'opacity-100']" 
-      class="h-full border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 ease-in-out shrink-0"
+      :class="[showWelcome ? 'opacity-5' : 'opacity-100']" 
+      class="w-72 h-full border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 ease-in-out shrink-0"
     >
-      <button @click="isSidebarCollapsed = !isSidebarCollapsed" class="absolute -right-3 top-10 bg-white text-black rounded-full p-1.5 z-[60] hover:scale-110 transition-transform shadow-xl border border-black/10">
-        <svg class="w-3 h-3" :class="isSidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M15 19l-7-7 7-7" /></svg>
-      </button>
-
-      <div class="h-28 flex items-center px-6 overflow-hidden">
+      <div class="h-28 flex items-center px-8 overflow-hidden">
         <div class="w-8 h-8 bg-white rounded-lg shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)]"></div>
-        <transition name="fade">
-          <h1 v-if="!isSidebarCollapsed" class="ml-4 text-xs font-black tracking-widest uppercase text-white">Aklat Admin</h1>
-        </transition>
+        <h1 class="ml-4 text-xs font-black tracking-widest uppercase text-white">Aklat Admin</h1>
       </div>
 
-      <nav class="flex-1 px-3 space-y-2 mt-4 overflow-y-auto">
+      <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
         <button v-for="item in navItems" :key="item.name" @click="activeTab = item.id"
-          class="w-full flex items-center h-14 rounded-xl transition-all duration-200"
-          :class="[ activeTab === item.id ? 'bg-white text-black' : 'text-zinc-500 hover:text-white', isSidebarCollapsed ? 'justify-center' : 'px-4' ]">
+          class="w-full flex items-center h-14 rounded-xl px-4 transition-all duration-200"
+          :class="activeTab === item.id ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'">
           <div class="w-6 h-6 flex items-center justify-center shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" :d="item.path" /></svg>
           </div>
-          <transition name="fade">
-            <span v-if="!isSidebarCollapsed" class="ml-4 font-bold text-sm tracking-tight whitespace-nowrap">{{ item.name }}</span>
-          </transition>
+          <span class="ml-4 font-bold text-sm tracking-tight whitespace-nowrap">{{ item.name }}</span>
         </button>
       </nav>
 
       <div class="p-6 border-t border-white/5 space-y-4">
-        <div class="flex items-center gap-3" :class="isSidebarCollapsed ? 'justify-center' : ''">
+        <div class="flex items-center gap-3 px-2">
           <div class="relative flex h-2 w-2">
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
           </div>
-          <p v-if="!isSidebarCollapsed" class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB Connection: {{ dbStatus }}</p>
         </div>
 
         <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all group">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          <span v-if="!isSidebarCollapsed" class="ml-3 font-bold text-xs uppercase tracking-widest whitespace-nowrap">Sign Out</span>
+          <span class="ml-3 font-bold text-xs uppercase tracking-widest whitespace-nowrap">Sign Out</span>
         </button>
       </div>
     </aside>
@@ -205,6 +197,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { db } from './lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
+// State
 const books = ref([]);
 const users = ref([]);
 const activeTab = ref('home');
@@ -213,7 +206,6 @@ const showLogoutModal = ref(false);
 const showDeleteModal = ref(false);
 const showAddBookModal = ref(false);
 const bookToDelete = ref(null);
-const isSidebarCollapsed = ref(false);
 const newBookTitle = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
