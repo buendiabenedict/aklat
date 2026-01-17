@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-black min-h-screen selection:bg-white/30 overflow-hidden font-ios">
+  <div class="bg-black min-h-screen selection:bg-white/30 overflow-hidden font-ios text-white">
     
     <transition name="loader-fade">
       <div v-if="isSystemLoading" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
@@ -90,8 +90,9 @@
       
       <div v-else-if="currentView === 'user'" key="user-view" class="h-screen flex flex-col items-center justify-center text-white bg-black p-6">
         <div class="text-center space-y-8">
-          <h1 class="text-6xl font-bold tracking-tight uppercase">User View</h1>
-          <p class="text-zinc-500 max-w-sm">Welcome to the student dashboard. You can now browse our library collections.</p>
+          <p class="text-zinc-600 uppercase tracking-[0.6em] text-[10px] mb-4 animate-pulse">Access Granted</p>
+          <h1 class="text-6xl font-bold tracking-tighter uppercase">Student Dashboard</h1>
+          <p class="text-zinc-500 max-w-sm mx-auto">Welcome to the AKLAT library collection. You can now browse and manage your reading list.</p>
           <button @click="handleLogout" class="px-12 py-4 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all font-bold uppercase tracking-widest text-xs">Logout</button>
         </div>
       </div>
@@ -103,13 +104,14 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import Admin from './Admin.vue';
-import { auth } from './lib/firebase';
+import { auth, db } from './lib/firebase'; // Added 'db' for Firestore
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
 } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"; // Added for saving users
 
 const currentView = ref(null);
 const isSystemLoading = ref(true);
@@ -124,11 +126,29 @@ const beforeLeave = (el) => { el.style.width = el.offsetWidth + 'px'; el.style.p
 const enter = (el) => { nextTick(() => { containerHeight.value = el.offsetHeight; }); };
 
 // Firebase Actions
+
+const saveUserToDatabase = async (user, name = null) => {
+  // Sinisave ang user sa 'users' collection para lumitaw sa Community tab
+  try {
+    const is_admin = user.email.includes('admin');
+    await setDoc(doc(db, "users", user.uid), {
+      email: user.email,
+      fullName: name || user.displayName || 'New Member',
+      role: is_admin ? 'Admin' : 'Member',
+      lastLogin: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.error("Error saving user: ", e);
+  }
+};
+
 const handleSignup = async () => {
   authLoading.value = true;
   errorMsg.value = "";
   try {
-    await createUserWithEmailAndPassword(auth, form.email, form.password);
+    const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+    // Pagka-rehistro, i-save agad sa Database
+    await saveUserToDatabase(userCredential.user, form.name);
     alert("Success! Your account is created.");
     isLogin.value = true;
   } catch (err) {
@@ -141,8 +161,9 @@ const handleLogin = async () => {
   errorMsg.value = "";
   try {
     const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+    // Pagka-login, i-update ang record sa Database
+    await saveUserToDatabase(userCredential.user);
     const user = userCredential.user;
-    // Logic: Kung may word na 'admin' sa email, siya ay admin
     currentView.value = user.email.includes('admin') ? 'admin' : 'user';
   } catch (err) {
     errorMsg.value = "Invalid email or password.";
@@ -155,7 +176,6 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  // Check auth state
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentView.value = user.email.includes('admin') ? 'admin' : 'user';
@@ -173,7 +193,6 @@ onMounted(() => {
 </script>
 
 <style>
-/* CSS remains the same for the design */
 .font-ios { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
 .ios-gradient-text { background: linear-gradient(180deg, #FFFFFF 0%, #A1A1AA 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .ios-spinner { position: relative; width: 32px; height: 32px; }
@@ -191,9 +210,8 @@ onMounted(() => {
 .bar10 { transform: rotate(270deg) translate(0, -100%); animation-delay: -0.25s !important; }
 .bar11 { transform: rotate(300deg) translate(0, -100%); animation-delay: -0.166s !important; }
 .bar12 { transform: rotate(330deg) translate(0, -100%); animation-delay: -0.083s !important; }
-</style>
 
-<style scoped>
+/* Transitions */
 .orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.15; pointer-events: none; }
 .orb-1 { width: 800px; height: 800px; background: radial-gradient(circle, #ffffff 0%, transparent 70%); top: -400px; left: -200px; }
 .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, #52525b 0%, transparent 70%); bottom: -300px; right: -100px; }

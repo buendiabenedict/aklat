@@ -19,7 +19,7 @@
       <div class="h-28 flex items-center px-6 overflow-hidden">
         <div class="w-8 h-8 bg-white rounded-lg shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)]"></div>
         <transition name="fade">
-          <h1 v-if="!isSidebarCollapsed" class="ml-4 text-xs font-black tracking-widest uppercase text-white">Aklat Admin</h1>
+          <h1 v-if="!isSidebarCollapsed" class="ml-4 text-xs font-black tracking-widest uppercase text-white tracking-widest">Aklat Admin</h1>
         </transition>
       </div>
 
@@ -65,7 +65,7 @@
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Books in Catalog</h3>
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Books In Catalog</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
           </div>
           <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
@@ -99,7 +99,11 @@
         </section>
 
         <section v-else-if="activeTab === 'community'" :key="'community'" class="space-y-8">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-if="users.length === 0" class="p-20 text-center border border-dashed border-white/10 rounded-3xl">
+            <p class="text-zinc-600 uppercase tracking-widest text-xs font-bold mb-2">No database entries</p>
+            <p class="text-zinc-400">Login records will appear here once users start signing in.</p>
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="user in users" :key="user.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex items-center gap-4 group hover:border-white/20 transition-all">
               <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center font-bold text-lg border border-white/5 group-hover:bg-white group-hover:text-black transition-all">
                 {{ user.email ? user.email[0].toUpperCase() : 'U' }}
@@ -113,7 +117,7 @@
         </section>
 
         <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl text-zinc-500">
-           System Configurations: Database Online.
+           System Settings: Cloud Deployment v1.0.2
         </div>
       </transition>
     </main>
@@ -144,7 +148,7 @@
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
           <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8 font-medium">This will end your librarian session.</p>
+          <p class="text-zinc-500 text-sm mb-8 font-medium text-center">This will end your librarian session.</p>
           <div class="flex gap-3">
             <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
             <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Logout</button>
@@ -159,11 +163,11 @@
           <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </div>
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white text-center">Delete Book?</h3>
-          <p class="text-zinc-500 text-sm mb-8 font-medium">This action cannot be undone.</p>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Delete Book?</h3>
+          <p class="text-zinc-500 text-sm mb-8 font-medium">This cannot be undone.</p>
           <div class="flex gap-3">
             <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white hover:bg-white/5">Cancel</button>
-            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Confirm</button>
+            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700">Confirm Delete</button>
           </div>
         </div>
       </div>
@@ -209,7 +213,7 @@ const loadData = () => {
     books.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
 
-  // Load Users from 'users' collection
+  // Load Users
   onSnapshot(collection(db, "users"), (snapshot) => {
     users.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
@@ -220,7 +224,7 @@ const addBook = async () => {
   try {
     await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() });
     newBookTitle.value = '';
-    showAddBookModal.value = false; // Close modal after success
+    showAddBookModal.value = false;
   } catch (err) { alert(err.message); }
 };
 
