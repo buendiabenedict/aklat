@@ -4,9 +4,7 @@
     <header class="p-6 flex justify-between items-center relative z-20">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black font-black text-lg shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
+          <span class="text-[10px] tracking-tighter">AK</span>
         </div>
         <h1 class="text-lg font-bold tracking-tighter italic uppercase">Aklat</h1>
       </div>
@@ -61,7 +59,7 @@
             <div v-for="book in filteredBooks" :key="book.id" class="bg-zinc-950 border border-white/5 p-4 rounded-xl flex items-center justify-between hover:border-white/20 transition-all">
               <div class="flex items-center gap-4">
                 <div class="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center text-zinc-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  <span class="text-[8px] font-black uppercase">BOOK</span>
                 </div>
                 <div>
                   <h3 class="text-sm font-bold tracking-tight uppercase italic leading-none">{{ book.title }}</h3>
@@ -76,21 +74,31 @@
         <div v-else-if="activeTab === 'loans'" key="loans" class="py-10 space-y-4 text-left">
           <section class="mb-6">
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Status</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient leading-tight">Borrowed Assets</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient leading-tight">Borrowed</h2>
           </section>
 
           <div v-if="approvedLoans.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
             <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">No Active Possession</p>
           </div>
-          <div v-for="loan in approvedLoans" :key="loan.id" class="bg-white text-black p-6 rounded-3xl mb-3 flex justify-between items-center shadow-2xl border-l-[8px] border-blue-600">
-            <div class="max-w-[60%]">
-              <p class="text-[8px] font-black uppercase tracking-widest mb-1 opacity-40">Active Possession</p>
-              <h3 class="text-xl font-bold tracking-tighter uppercase leading-none">{{ loan.bookTitle }}</h3>
-              <p class="text-[9px] font-bold text-zinc-400 mt-2 uppercase">Verified Sync</p>
+
+          <div v-for="loan in approvedLoans" :key="loan.id" 
+               :class="isOverdue(loan.returnSchedule) ? 'overdue-card' : 'standard-card'"
+               class="p-6 rounded-[2rem] mb-4 flex justify-between items-center border shadow-2xl relative overflow-hidden transition-all">
+            
+            <div class="relative z-10 flex-1">
+              <p class="text-[8px] font-black uppercase tracking-widest mb-1 opacity-40">Verified Sync</p>
+              <h3 class="text-xl font-bold tracking-tighter uppercase leading-none mb-4 italic">{{ loan.bookTitle }}</h3>
+              
+              <div class="flex flex-col">
+                <span class="text-[8px] font-black uppercase opacity-40 tracking-widest mb-0.5">Scheduled Return</span>
+                <span class="text-[14px] font-bold font-mono tracking-tighter uppercase">
+                  {{ loan.returnSchedule }} — 07:30 AM
+                </span>
+              </div>
             </div>
-            <div class="text-right">
-              <p class="text-[8px] font-black uppercase tracking-widest mb-1 opacity-40">Return in</p>
-              <p class="text-lg font-mono font-bold text-blue-600 tabular-nums">{{ calculateCountdown(loan.returnSchedule) }}</p>
+
+            <div v-if="isOverdue(loan.returnSchedule)" class="relative z-10">
+              <span class="px-3 py-1 rounded-full bg-red-600 text-white text-[8px] font-black uppercase animate-pulse">Overdue</span>
             </div>
           </div>
         </div>
@@ -103,13 +111,11 @@
 
           <div v-for="req in combinedHistory" :key="req.id" class="p-4 bg-zinc-950 border border-white/5 rounded-2xl flex items-center justify-between">
             <div class="flex items-center gap-4">
-              <div :class="getStatusIconClass(req.status)" class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
-                <svg v-if="isStatus(req.status, 'approve')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-                <svg v-else-if="isStatus(req.status, 'decline')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
-                <svg v-else class="w-5 h-5 animate-pulse text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div :class="getStatusIconClass(req.status)" class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg font-black text-[8px]">
+                {{ req.status?.slice(0,3).toUpperCase() || '...' }}
               </div>
               <div>
-                <h4 class="font-bold tracking-tight text-xs uppercase">{{ req.bookTitle }}</h4>
+                <h4 class="font-bold tracking-tight text-xs uppercase italic">{{ req.bookTitle }}</h4>
                 <p class="text-[8px] uppercase font-black tracking-widest mt-0.5" :class="getTextStatusColor(req.status)">{{ req.status || 'Processing' }}</p>
               </div>
             </div>
@@ -124,7 +130,7 @@
           </section>
 
           <div class="w-24 h-24 bg-zinc-900 border border-white/10 mx-auto rounded-[2rem] flex items-center justify-center text-3xl font-black mb-4 shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-t-white/10">{{ auth.currentUser?.email?.[0].toUpperCase() }}</div>
-          <h2 class="text-2xl font-bold tracking-tighter uppercase">{{ auth.currentUser?.email }}</h2>
+          <h2 class="text-2xl font-bold tracking-tighter uppercase italic">{{ auth.currentUser?.email }}</h2>
           
           <div class="max-w-xs mx-auto pt-6">
             <button @click="showLogoutModal = true" class="w-full py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/5 active:bg-red-600 active:text-white transition-all">Terminate Session</button>
@@ -134,23 +140,11 @@
       </transition>
     </main>
 
-    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-full max-w-[280px]">
-      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-around shadow-2xl">
-        <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-        </button>
-        <button @click="activeTab = 'explore'" :class="activeTab === 'explore' ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        </button>
-        <button @click="activeTab = 'loans'" :class="activeTab === 'loans' ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-          <div v-if="approvedLoans.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-[8px] font-black text-white border-2 border-black">{{ approvedLoans.length }}</div>
-        </button>
-        <button @click="activeTab = 'notifications'" :class="activeTab === 'notifications' ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-        </button>
-        <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px]">
+      <nav class="bg-zinc-900/60 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-around shadow-2xl">
+        <button v-for="tab in ['home', 'explore', 'loans', 'notifications', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black shadow-lg scale-110' : 'text-zinc-600 hover:text-white'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative">
+          <div v-if="tab === 'loans' && approvedLoans.length > 0" class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[7px] font-black text-white border border-black">{{ approvedLoans.length }}</div>
+          <span class="text-[8px] font-black uppercase">{{ tab.slice(0, 3) }}</span>
         </button>
       </nav>
     </div>
@@ -205,15 +199,21 @@ const showToast = ref(false);
 const selectedBook = ref(null);
 const returnDate = ref('');
 const dateError = ref('');
-const currentTime = ref(new Date());
-
-let timerInterval;
 
 const minDate = computed(() => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return tomorrow.toISOString().split('T')[0];
 });
+
+// OVERDUE CHECKER
+const isOverdue = (schedule) => {
+  if (!schedule) return false;
+  const now = new Date();
+  const target = new Date(schedule.replace(/-/g, '/'));
+  target.setHours(7, 30, 0, 0); 
+  return now.getTime() > target.getTime();
+};
 
 onMounted(() => {
   onSnapshot(collection(db, "books"), (s) => {
@@ -230,17 +230,13 @@ onMounted(() => {
       });
     }
   });
-
-  timerInterval = setInterval(() => { currentTime.value = new Date(); }, 1000);
 });
-
-onUnmounted(() => clearInterval(timerInterval));
 
 const approvedLoans = computed(() => {
   const fromNotif = notifications.value.filter(req => (req.status || '').toLowerCase().includes('approve'));
   const fromBorrowers = borrowers.value.filter(req => (req.status || '').toLowerCase().includes('approve') || !req.status);
   const all = [...fromNotif, ...fromBorrowers];
-  return Array.from(new Map(all.map(item => [item.id, item])).values());
+  return Array.from(new Map(all.map(item => [item.bookTitle, item])).values());
 });
 
 const combinedHistory = computed(() => {
@@ -252,19 +248,6 @@ const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase
 const isStatus = (current, target) => (current || '').toString().toLowerCase().trim().includes(target.toLowerCase());
 const getStatusIconClass = (status) => isStatus(status, 'approve') ? 'bg-green-500/10 text-green-500' : isStatus(status, 'decline') ? 'bg-red-500/10 text-red-500' : 'bg-zinc-800 text-zinc-500';
 const getTextStatusColor = (status) => isStatus(status, 'approve') ? 'text-green-500' : isStatus(status, 'decline') ? 'text-red-500' : 'text-zinc-600';
-
-const calculateCountdown = (dateStr) => {
-  if (!dateStr) return "SYNC";
-  const target = new Date(dateStr);
-  target.setHours(23, 59, 59);
-  const diff = target - currentTime.value;
-  if (diff <= 0) return "DUE";
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const secs = Math.floor((diff % 60000) / 1000);
-  return `${days}d ${hours}h ${mins}m ${secs}s`;
-};
 
 const formatTimestamp = (ts) => ts ? new Date(ts.seconds * 1000).toLocaleDateString() : 'SYNC';
 
@@ -308,11 +291,18 @@ const executeLogout = async () => {
 </script>
 
 <style scoped>
-.apple-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #444444 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.standard-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  border-color: rgba(255,255,255,0.08);
 }
+
+.overdue-card {
+  background: linear-gradient(145deg, rgba(220,38,38,0.1) 0%, rgba(220,38,38,0.05) 100%);
+  border-color: rgba(220,38,38,0.3);
+}
+
 .page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }

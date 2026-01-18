@@ -4,9 +4,7 @@
     <header class="p-6 flex justify-between items-center relative z-20">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.744c0 5.548 4.075 10.14 9 10.856 4.925-.716 9-5.308 9-10.856 0-1.31-.21-2.57-.598-3.744A11.959 11.959 0 0112 2.714z" />
-          </svg>
+          <span class="text-[10px] tracking-tighter">AC</span>
         </div>
         <div>
           <h1 class="text-sm font-bold tracking-tighter uppercase leading-none">Admin Central</h1>
@@ -56,19 +54,17 @@
             </div>
             <div class="flex gap-2">
               <button v-if="selectedBooks.length > 0" @click="showDeleteModal = true" class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                DEL
               </button>
               <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                ADD
               </button>
             </div>
           </section>
           <div class="space-y-2">
             <div v-for="book in books" :key="book.id" @click="toggleSelectBook(book.id)" :class="selectedBooks.includes(book.id) ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-zinc-950'" class="p-4 rounded-xl flex items-center justify-between border transition-all cursor-pointer">
               <div class="flex items-center gap-4">
-                <div class="w-4 h-4 rounded border border-zinc-700 flex items-center justify-center" :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : ''">
-                  <svg v-if="selectedBooks.includes(book.id)" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path d="M5 13l4 4L19 7" /></svg>
-                </div>
+                <div class="w-4 h-4 rounded border border-zinc-700 flex items-center justify-center" :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : ''"></div>
                 <div>
                   <h3 class="text-sm font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
                   <p class="text-[8px] text-zinc-600 uppercase mt-1 tracking-widest">UID: {{ book.id.slice(0,8) }}</p>
@@ -91,7 +87,7 @@
               <div>
                 <h3 class="text-lg font-bold tracking-tighter uppercase leading-none">{{ req.bookTitle }}</h3>
                 <p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-1">{{ req.userEmail }}</p>
-                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Scheduled Return: {{ req.returnDate }}</p>
+                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Date: {{ req.returnDate }}</p>
               </div>
             </div>
             <div class="flex gap-2">
@@ -103,34 +99,39 @@
 
         <div v-else-if="activeTab === 'borrowers'" key="borrowers" class="py-10">
           <section class="mb-6">
-            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Real-time Tracking</p>
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Active Tracker</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
           <div v-for="person in borrowers" :key="person.id" 
-               :class="isOverdue(person.returnSchedule) ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
-               class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-all">
-            <div class="max-w-[60%]">
-              <h3 class="text-sm font-black uppercase tracking-tighter leading-none truncate">{{ person.bookTitle }}</h3>
-              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="isOverdue(person.returnSchedule) ? 'text-white/70' : 'text-zinc-500'">
-                {{ person.userEmail }}
-              </p>
-              <div class="mt-2 flex flex-col gap-0.5">
-                <p class="text-[10px] font-black uppercase tracking-tighter" :class="isOverdue(person.returnSchedule) ? 'text-white' : 'text-blue-600'">
-                   {{ isOverdue(person.returnSchedule) ? '⚠️ OVERDUE' : '📅 Return Date' }}
-                </p>
-                <p class="text-[14px] font-black font-mono tracking-tighter">
-                  {{ person.returnSchedule }} @ 7:30 AM
-                </p>
+               :class="isOverdue(person.returnSchedule) ? 'overdue-card' : 'standard-card'"
+               class="p-6 rounded-[2rem] mb-4 flex justify-between items-center border shadow-2xl relative overflow-hidden transition-all group">
+            
+            <div class="relative z-10 flex-1">
+              <h3 class="text-sm font-black uppercase tracking-tight leading-none mb-1">{{ person.bookTitle }}</h3>
+              <p class="text-[9px] font-bold uppercase opacity-60 tracking-widest mb-4">{{ person.userEmail }}</p>
+              
+              <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                  <span class="text-[8px] font-bold uppercase opacity-40 tracking-widest mb-0.5">Deadline</span>
+                  <span class="text-[12px] font-bold font-mono tracking-tighter uppercase">
+                    {{ person.returnSchedule }} — 07:30 AM
+                  </span>
+                </div>
+                <div v-if="isOverdue(person.returnSchedule)" class="px-2 py-0.5 rounded-full bg-red-500 text-white text-[8px] font-black uppercase tracking-tighter animate-pulse">
+                  OVERDUE
+                </div>
               </div>
             </div>
+
             <button @click="confirmReturn(person)" 
-                    :class="isOverdue(person.returnSchedule) ? 'bg-white text-red-600' : 'bg-black text-white'"
-                    class="px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-              Returned
+                    class="relative z-10 px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all
+                           bg-white/10 hover:bg-white hover:text-black border border-white/10 backdrop-blur-sm">
+              Return
             </button>
           </div>
+
           <div v-if="borrowers.length === 0" class="text-center py-20">
-            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">No Active Loans</p>
+            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">No Active Records</p>
           </div>
         </div>
 
@@ -177,27 +178,18 @@
           </section>
           <div class="w-24 h-24 bg-blue-600 border border-blue-400 mx-auto rounded-[2.5rem] flex items-center justify-center text-3xl font-black mb-4 shadow-2xl">A</div>
           <h2 class="text-2xl font-bold tracking-tighter uppercase">{{ auth.currentUser?.email }}</h2>
-          <button @click="showLogoutModal = true" class="mt-20 w-full max-w-xs py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 active:bg-red-600 active:text-white transition-all">Sign Out Admin Session</button>
+          <button @click="showLogoutModal = true" class="mt-20 w-full max-w-xs py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 active:bg-red-600 active:text-white transition-all">Sign Out Admin</button>
         </div>
 
       </transition>
     </main>
 
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[420px] px-4">
-      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl">
-        <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 min-w-[40px] rounded-full flex items-center justify-center transition-all relative">
-          <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-600 rounded-full border border-black flex items-center justify-center px-1 animate-bounce z-10 shadow-lg">
-            <span class="text-[8px] font-black text-white leading-none">{{ pendingRequests.length }}</span>
-          </div>
-          <div v-if="tab === 'borrowers' && hasOverdue" class="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border border-black animate-pulse z-10"></div>
-          
-          <svg v-if="tab === 'dashboard'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
-          <svg v-if="tab === 'inventory'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
-          <svg v-if="tab === 'requests'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
-          <svg v-if="tab === 'borrowers'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <svg v-if="tab === 'community'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-          <svg v-if="tab === 'logs'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
-          <svg v-if="tab === 'profile'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[450px] px-4">
+      <nav class="bg-zinc-900/60 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl">
+        <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black scale-110 shadow-lg' : 'text-zinc-500 hover:text-white'" class="w-10 h-10 min-w-[40px] rounded-full flex items-center justify-center transition-all relative">
+          <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border border-black animate-pulse z-10"></div>
+          <div v-if="tab === 'borrowers' && hasOverdue" class="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full z-10 animate-ping"></div>
+          <span class="text-[8px] font-black uppercase">{{ tab.slice(0, 3) }}</span>
         </button>
       </nav>
     </div>
@@ -205,10 +197,7 @@
     <transition name="fade">
       <div v-if="showReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div v-if="targetBorrower" class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Mark Returned?</h3>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">
-            Record return for "{{ targetBorrower.bookTitle }}".
-          </p>
+          <h3 class="text-xl font-black mb-8 uppercase tracking-tighter">Confirm Return?</h3>
           <div class="flex gap-3">
             <button @click="showReturnModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
             <button @click="executeReturn" class="flex-1 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase">Yes</button>
@@ -220,10 +209,10 @@
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
-          <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">Batch Initialize</h2>
-          <textarea v-model="batchTitleInput" placeholder="Enter book titles (one per line)" rows="5" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4 text-xs resize-none"></textarea>
-          <button @click="batchAddBooks" :disabled="!batchTitleInput" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Add to Repository</button>
-          <button @click="showAddModal = false" class="w-full py-4 text-zinc-600 font-bold uppercase text-[9px] mt-1">Cancel Action</button>
+          <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">Inventory</h2>
+          <textarea v-model="batchTitleInput" placeholder="Titles..." rows="5" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4 text-xs resize-none"></textarea>
+          <button @click="batchAddBooks" :disabled="!batchTitleInput" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Submit</button>
+          <button @click="showAddModal = false" class="w-full py-4 text-zinc-600 font-bold uppercase text-[9px] mt-1">Cancel</button>
         </div>
       </div>
     </transition>
@@ -231,7 +220,7 @@
     <transition name="fade">
       <div v-if="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter leading-none">Delete Selection?</h3>
+          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter">Delete?</h3>
           <div class="flex gap-3">
             <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
             <button @click="deleteSelectedBooks" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Yes</button>
@@ -243,7 +232,7 @@
     <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter leading-none">Terminate?</h3>
+          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter">Terminate?</h3>
           <div class="flex gap-3">
             <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
             <button @click="executeLogout" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Yes</button>
@@ -283,7 +272,7 @@ const currentTimeDisplay = ref('');
 
 let clockInterval;
 
-// 🛠️ SIMPLE STATUS CHECK
+// STATUS CHECKER
 const isOverdue = (schedule) => {
   if (!schedule) return false;
   const now = new Date();
@@ -353,10 +342,9 @@ const approveRequest = async (req) => {
   try {
     await updateDoc(doc(db, "notifications", req.id), { 
       status: 'approved',
-      message: `Your request for "${req.bookTitle}" has been approved! Due: ${req.returnDate} @ 7:30 AM.`,
+      message: `Approved: Due ${req.returnDate} @ 7:30 AM.`,
       approvedAt: serverTimestamp() 
     });
-
     await addDoc(collection(db, "borrowers"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
@@ -366,7 +354,6 @@ const approveRequest = async (req) => {
       status: 'active',
       approvedAt: serverTimestamp()
     });
-
     await addDoc(collection(db, "history"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
@@ -380,10 +367,7 @@ const approveRequest = async (req) => {
 
 const declineRequest = async (id) => {
   const req = notifications.value.find(n => n.id === id);
-  await updateDoc(doc(db, "notifications", id), { 
-    status: 'declined',
-    message: `Your request for "${req?.bookTitle}" was declined.`
-  });
+  await updateDoc(doc(db, "notifications", id), { status: 'declined' });
   await addDoc(collection(db, "history"), { 
     bookTitle: req?.bookTitle, 
     userEmail: req?.userEmail, 
@@ -400,23 +384,16 @@ const confirmReturn = (person) => {
 const executeReturn = async () => {
   if (!targetBorrower.value) return;
   const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
-
   try {
     await deleteDoc(doc(db, "borrowers", id));
-
-    if (originalRequestId) {
-      await updateDoc(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
-    }
-
+    if (originalRequestId) await updateDoc(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
     await addDoc(collection(db, "notifications"), {
       userId, bookTitle, userEmail,
-      message: `The book "${bookTitle}" has been marked as returned.`,
+      message: `Return recorded for ${bookTitle}`,
       status: 'returned_by_admin',
       createdAt: serverTimestamp()
     });
-
     await addDoc(collection(db, "history"), { bookTitle, userEmail, status: 'returned', createdAt: serverTimestamp() });
-
     showReturnModal.value = false;
     targetBorrower.value = null;
   } catch (err) {
@@ -432,6 +409,20 @@ const executeLogout = async () => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* 🍎 iOS MINIMALIST GRADIENTS FOR BORROWERS PAGE */
+.standard-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.overdue-card {
+  background: linear-gradient(145deg, rgba(220,38,38,0.1) 0%, rgba(220,38,38,0.05) 100%);
+  border-color: rgba(220,38,38,0.3);
+  box-shadow: 0 20px 40px rgba(220,38,38,0.15);
+}
+
 .page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
