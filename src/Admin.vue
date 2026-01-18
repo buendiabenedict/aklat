@@ -134,7 +134,7 @@
               </div>
               <div class="flex gap-3">
                 <button @click="confirmApprove(req)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Authorize</button>
-                <button @click="declineRequest(req.id)" class="flex-1 py-5 bg-zinc-950 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
+                <button @click="confirmDecline(req)" class="flex-1 py-5 bg-zinc-950 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
               </div>
             </div>
           </transition-group>
@@ -194,8 +194,8 @@
         </div>
 
         <!-- PROFILE TAB -->
-        <div v-else-if="activeTab === 'profile'" key="profile" class="py-10">
-          <section class="mb-12">
+        <div v-else-if="activeTab === 'profile'" key="profile" class="py-10 space-y-10">
+          <section>
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Profile</h2>
           </section>
@@ -205,11 +205,47 @@
                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             </div>
             <h3 class="text-2xl font-black uppercase tracking-tighter mb-1">Administrator</h3>
-            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] mb-12">Authorized Access Only</p>
+            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] mb-8">Authorized Access Only</p>
             
             <button @click="$emit('logout')" class="w-full py-6 bg-zinc-950 text-red-500 rounded-[2rem] font-black uppercase text-[12px] tracking-widest active:scale-95 transition-all border border-red-500/10 hover:bg-red-500 hover:text-white">
               Terminate Session
             </button>
+          </div>
+
+          <!-- SYSTEM INFO SECTION -->
+          <div class="bg-zinc-900 border border-white/5 p-10 rounded-[3rem]">
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-6">System Intelligence</p>
+            <div class="space-y-8">
+              <div class="flex gap-6">
+                <div class="w-10 h-10 bg-zinc-950 rounded-xl flex-shrink-0 flex items-center justify-center text-blue-500 border border-white/5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-black uppercase tracking-widest mb-2">Aklat Digital Framework</h4>
+                  <p class="text-xs text-zinc-500 leading-relaxed font-bold uppercase tracking-tight">A decentralized asset management platform designed for rapid distribution of educational materials. Built on Real-time Cloud Infrastructure for zero-latency synchronization.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-6">
+                <div class="w-10 h-10 bg-zinc-950 rounded-xl flex-shrink-0 flex items-center justify-center text-amber-500 border border-white/5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-black uppercase tracking-widest mb-2">Security Protocol</h4>
+                  <p class="text-xs text-zinc-500 leading-relaxed font-bold uppercase tracking-tight">End-to-end audit logging for every transaction. All data is encrypted at rest and validated via custom authentication tokens before processing.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-6">
+                <div class="w-10 h-10 bg-zinc-950 rounded-xl flex-shrink-0 flex items-center justify-center text-zinc-500 border border-white/5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 7.717l.547 1.022M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707" /></svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-black uppercase tracking-widest mb-2">Version 4.0.0-Stable</h4>
+                  <p class="text-xs text-zinc-500 leading-relaxed font-bold uppercase tracking-tight">Optimized for mobile interfaces with a focus on high-contrast visual hierarchy and gesture-based interaction models.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -322,6 +358,26 @@
       </div>
     </transition>
 
+    <!-- MODAL: DECLINE CONFIRMATION -->
+    <transition name="fade">
+      <div v-if="showDeclineModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <div class="w-16 h-16 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12" /></svg>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase leading-none">Reject Request?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10 leading-relaxed px-4">
+            declining request for<br>
+            <span class="text-white">{{ activeRequest?.bookTitle }}</span>
+          </p>
+          <div class="flex gap-3">
+            <button @click="declineRequest(activeRequest)" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Reject</button>
+            <button @click="showDeclineModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- MODAL: RETURN CONFIRMATION -->
     <transition name="fade">
       <div v-if="showReturnModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
@@ -405,6 +461,7 @@ const showDeleteModal = ref(false);
 const showBatchDeleteModal = ref(false);
 const showResetModal = ref(false);
 const showApproveModal = ref(false);
+const showDeclineModal = ref(false);
 const showReturnModal = ref(false);
 
 const bookToDelete = ref(null);
@@ -484,6 +541,11 @@ const confirmApprove = (req) => {
   showApproveModal.value = true;
 };
 
+const confirmDecline = (req) => {
+  activeRequest.value = req;
+  showDeclineModal.value = true;
+};
+
 const approveRequest = async (req) => {
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
   await addDoc(collection(db, "borrowers"), { 
@@ -505,8 +567,17 @@ const approveRequest = async (req) => {
   activeRequest.value = null;
 };
 
-const declineRequest = async (id) => {
-  await updateDoc(doc(db, "notifications", id), { status: 'declined' });
+const declineRequest = async (req) => {
+  if (!req) return;
+  await updateDoc(doc(db, "notifications", req.id), { status: 'declined' });
+  await addDoc(collection(db, "history"), { 
+    bookTitle: req.bookTitle,
+    userEmail: req.userEmail,
+    status: 'declined', 
+    createdAt: serverTimestamp() 
+  });
+  showDeclineModal.value = false;
+  activeRequest.value = null;
 };
 
 const confirmReturn = (person) => {
