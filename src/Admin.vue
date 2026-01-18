@@ -370,9 +370,11 @@ const deleteSelectedBooks = async () => {
 };
 
 const approveRequest = async (req) => {
+  // notification id is req.id
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
   await addDoc(collection(db, "borrowers"), { 
-    ...req, 
+    ...req,
+    requestId: req.id, // Save the notification/request ID for later syncing
     returnSchedule: req.returnDate, 
     status: 'approved', 
     approvedAt: serverTimestamp() 
@@ -386,7 +388,7 @@ const declineRequest = async (id) => {
   await addDoc(collection(db, "history"), { bookTitle: req?.bookTitle, userEmail: req?.userEmail, status: 'declined', createdAt: serverTimestamp() });
 };
 
-// 🛠️ RETURN LOGIC WITH MODAL AND NOTIFICATION
+// 🛠️ THE GHOST FIX: SYNCED RETURN LOGIC
 const confirmReturn = (person) => {
   targetBorrower.value = person;
   showReturnModal.value = true;
@@ -395,23 +397,26 @@ const confirmReturn = (person) => {
 const executeReturn = async () => {
   if (!targetBorrower.value) return;
   
-  const { id, bookTitle, userEmail, userId } = targetBorrower.value;
+  const { id, bookTitle, userEmail, userId, requestId } = targetBorrower.value;
 
   try {
-    // 1. Delete from borrowers collection
-    await deleteDoc(doc(db, "borrowers", id));
+    const batch = writeBatch(db);
 
-    // 2. Add to History Logs
-    await addDoc(collection(db, "history"), { 
-      bookTitle, 
-      userEmail, 
-      status: 'returned', 
-      createdAt: serverTimestamp() 
-    });
+    // 1. Tanggalin sa Admin Borrowers list
+    batch.delete(doc(db, "borrowers", id));
 
-    // 3. Notify the User (This will show up in their Inbox)
-    await addDoc(collection(db, "notifications"), {
-      userId: userId, // Gamit yung saved userId sa borrower doc
+    // 2. I-update ang STATUS ng original notification para mawala sa "Borrowed Assets"
+    // Dahil ang user view ay nag-fa-filter ng "status === 'approved'"
+    if (requestId) {
+      batch.update(doc(db, "notifications", requestId), { 
+        status: 'returned_archive' 
+      });
+    }
+
+    // 3. Mag-send ng bagong notification para sa Inbox ng user
+    const newNotifRef = doc(collection(db, "notifications"));
+    batch.set(newNotifRef, {
+      userId: userId,
       bookTitle: bookTitle,
       userEmail: userEmail,
       message: "The librarian set your book to returned.",
@@ -419,8 +424,22 @@ const executeReturn = async () => {
       createdAt: serverTimestamp()
     });
 
+    // 4. Mag-add sa System Logs
+    const historyRef = doc(collection(db, "history"));
+    batch.set(historyRef, {
+      bookTitle, 
+      userEmail, 
+      status: 'returned', 
+      createdAt: serverTimestamp() 
+    });
+
+    // Execute all at once
+    await batch.commit();
+
     showReturnModal.value = false;
     targetBorrower.value = null;
+    
+    console.log("Sync Complete: Ghost entries cleared! 👻🚫");
   } catch (error) {
     console.error("Return error:", error);
   }
