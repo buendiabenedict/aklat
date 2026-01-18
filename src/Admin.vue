@@ -91,6 +91,7 @@
               <div>
                 <h3 class="text-lg font-bold tracking-tighter uppercase leading-none">{{ req.bookTitle }}</h3>
                 <p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-1">{{ req.userEmail }}</p>
+                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Requested Return: {{ req.returnDate }}</p>
               </div>
             </div>
             <div class="flex gap-2">
@@ -119,6 +120,7 @@
                   {{ formatCountdown(person.returnSchedule) }}
                 </span>
               </div>
+              <p class="text-[7px] font-bold uppercase mt-1 opacity-50 tracking-widest">Due at 7:30 AM</p>
             </div>
             <button @click="confirmReturn(person)" 
                     :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white text-red-600' : 'bg-black text-white'"
@@ -216,7 +218,7 @@
 
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
-        <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
+        <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-sm w-full shadow-2xl">
           <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">Batch Initialize</h2>
           <textarea v-model="batchTitleInput" placeholder="Enter book titles (one per line)" rows="5" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4 text-xs resize-none"></textarea>
           <button @click="batchAddBooks" :disabled="!batchTitleInput" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Add to Repository</button>
@@ -287,21 +289,28 @@ const updateClock = () => {
   currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
 };
 
+// 🛠️ CUSTOM TIME LOGIC (FORCE TO 7:30 AM)
 const getRemainingMs = (schedule) => {
   if (!schedule) return 0;
-  // Handle cross-platform date strings
+  // Convert date string to object
   const target = new Date(schedule.replace(/-/g, '/'));
-  target.setHours(23, 59, 59, 999);
+  
+  // ETO YUNG BINAGO: I-force natin sa 7:30 AM
+  target.setHours(7, 30, 0, 0); 
+  
   return target.getTime() - timerRef.value;
 };
 
 const formatCountdown = (schedule) => {
   const diff = getRemainingMs(schedule);
-  if (diff <= 0) return "EXPIRED / OVERDUE";
+  if (diff <= 0) return "OVERDUE / RETURN NOW";
+  
   const d = Math.floor(diff / (1000 * 60 * 60 * 24));
   const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m`;
+  const s = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
 };
 
 const hasOverdue = computed(() => borrowers.value.some(p => getRemainingMs(p.returnSchedule) <= 0));
@@ -356,28 +365,24 @@ const deleteSelectedBooks = async () => {
   showDeleteModal.value = false;
 };
 
-// 🛠️ FIXED APPROVE LOGIC
 const approveRequest = async (req) => {
   try {
-    // 1. Update the original notification
     await updateDoc(doc(db, "notifications", req.id), { 
       status: 'approved',
-      message: `Your request for "${req.bookTitle}" has been approved!`,
+      message: `Your request for "${req.bookTitle}" has been approved! Due at 7:30 AM.`,
       approvedAt: serverTimestamp() 
     });
 
-    // 2. Add to active borrowers for tracking
     await addDoc(collection(db, "borrowers"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
       userId: req.userId,
       originalRequestId: req.id,
-      returnSchedule: req.returnDate || '2026-01-25',
+      returnSchedule: req.returnDate,
       status: 'active',
       approvedAt: serverTimestamp()
     });
 
-    // 3. Log to system history
     await addDoc(collection(db, "history"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
@@ -413,15 +418,12 @@ const executeReturn = async () => {
   const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
 
   try {
-    // 1. Remove from borrowers (Hides from Admin UI)
     await deleteDoc(doc(db, "borrowers", id));
 
-    // 2. Archive the original notification
     if (originalRequestId) {
       await updateDoc(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
     }
 
-    // 3. Notify user of return status
     await addDoc(collection(db, "notifications"), {
       userId, bookTitle, userEmail,
       message: `The book "${bookTitle}" has been marked as returned.`,
@@ -429,7 +431,6 @@ const executeReturn = async () => {
       createdAt: serverTimestamp()
     });
 
-    // 4. History log
     await addDoc(collection(db, "history"), { bookTitle, userEmail, status: 'returned', createdAt: serverTimestamp() });
 
     showReturnModal.value = false;
