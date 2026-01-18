@@ -257,20 +257,24 @@ const updateClock = () => {
 };
 
 /**
- * 🛠️ THE MATCH FIX: Local Date Parsing
- * Sa halip na rekta `new Date(string)`, papalitan natin ang dashes ng slashes
- * para pilitin ang browser na basahin ito bilang Local Time, hindi UTC.
+ * 🛠️ THE ULTIMATE SYNC FIX
+ * Ginawa nating "End of Day" ang target (23:59:59)
+ * para mag-match sa 2-day logic ng User Side.
  */
 const getRemainingMs = (schedule) => {
   if (!schedule) return 0;
   
-  // Pinalitan ang dashes (-) ng slashes (/) para sa cross-browser consistency
-  // At siniguradong local time ang pag-parse
-  const fixedSchedule = schedule.replace(/-/g, '/');
-  const target = new Date(fixedSchedule).getTime();
+  // Gawing "2026/01/20" ang format
+  const fixedDate = schedule.replace(/-/g, '/');
   
-  if (isNaN(target)) return 0;
-  return target - timerRef.value;
+  // Pilitin na maging 11:59:59 PM para makuha ang buong araw
+  const target = new Date(fixedDate);
+  target.setHours(23, 59, 59, 999); 
+  
+  const targetMs = target.getTime();
+  if (isNaN(targetMs)) return 0;
+  
+  return targetMs - timerRef.value;
 };
 
 const formatCountdown = (schedule) => {
