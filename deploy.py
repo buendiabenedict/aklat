@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import subprocess
 import threading
+import os
 
 class DeployerApp:
     def __init__(self, root):
@@ -31,12 +32,11 @@ class DeployerApp:
         self.radio_frame = tk.Frame(root, bg='#121212')
         self.radio_frame.pack(fill=tk.X, padx=40, pady=5)
 
-        # Fixed Radio Buttons (Removed marginRight, added padx)
         self.r1 = tk.Radiobutton(self.radio_frame, text="Minor Updates", variable=self.update_type, 
                                  value="Minor Updates 🛠️", bg='#121212', fg='white', 
                                  selectcolor='#121212', activebackground='#121212', 
                                  activeforeground='white', font=("Arial", 10))
-        self.r1.pack(side=tk.LEFT, padx=(0, 20)) # Spacing sa kanan gamit ang tuple (left, right)
+        self.r1.pack(side=tk.LEFT, padx=(0, 20))
 
         self.r2 = tk.Radiobutton(self.radio_frame, text="Major Updates", variable=self.update_type, 
                                  value="Major System Overhaul 🚀", bg='#121212', fg='white', 
@@ -70,35 +70,52 @@ class DeployerApp:
 
     def run_deployment(self):
         msg = self.update_type.get()
-        
         self.deploy_btn.config(state=tk.DISABLED)
         self.set_status("yellow", "Processing...")
-        self.log("Starting cloud synchronization...")
-
+        
         try:
-            # Git Add
+            # 1. Check if Git is initialized
+            if not os.path.exists(".git"):
+                self.log("❌ ERROR: No .git folder found. Run 'git init' first.")
+                self.set_status("red", "Repo Not Found")
+                return
+
+            # 2. Git Add
             self.log("Staging changes...")
-            subprocess.run(["git", "add", "."], check=True, capture_output=True)
+            result = subprocess.run(["git", "add", "."], capture_output=True, text=True)
+            if result.returncode != 0:
+                self.log(f"❌ ADD ERROR: {result.stderr}")
+                return
 
-            # Git Commit
+            # 3. Git Commit
             self.log(f"Applying: {msg}")
-            subprocess.run(["git", "commit", "-m", msg], check=True, capture_output=True)
+            # Check if there are changes to commit
+            status_check = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+            if not status_check.stdout.strip():
+                self.log("ℹ️ No changes to commit. Working tree clean.")
+            else:
+                result = subprocess.run(["git", "commit", "-m", msg], capture_output=True, text=True)
+                if result.returncode != 0:
+                    self.log(f"❌ COMMIT ERROR: {result.stderr}")
+                    return
 
-            # Git Push
-            self.log("Uploading to Cloudflare via GitHub...")
-            subprocess.run(["git", "push", "origin", "main"], check=True, capture_output=True)
+            # 4. Git Push
+            self.log("Uploading to GitHub...")
+            result = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
+            if result.returncode != 0:
+                self.log(f"❌ PUSH ERROR: {result.stderr}")
+                self.set_status("red", "Push Failed")
+                return
 
-            # Success Logging
+            # Success
             self.log("--------------------------------------")
             self.log("✅ DEPLOYMENT SUCCESSFUL!")
-            self.log(f"SYSTEM STATUS: LIVE")
             self.log("--------------------------------------")
             self.set_status("#00ff00", "Live & Updated!")
 
-        except subprocess.CalledProcessError as e:
-            error_msg = e.stderr.decode() if e.stderr else "Git error occurred"
-            self.log(f"❌ ERROR: {error_msg}")
-            self.set_status("red", "Failed to Deploy")
+        except Exception as e:
+            self.log(f"❌ SYSTEM ERROR: {str(e)}")
+            self.set_status("red", "Critical Failure")
         
         finally:
             self.deploy_btn.config(state=tk.NORMAL)

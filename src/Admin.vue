@@ -40,7 +40,7 @@
           </div>
           <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
         </div>
-        <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all">
+        <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all active:scale-95">
           <span class="font-bold text-xs uppercase tracking-widest">Sign Out</span>
         </button>
       </div>
@@ -153,28 +153,48 @@
       </div>
     </transition>
 
+    <transition name="fade">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center">
+          <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
+          <p class="text-zinc-500 text-sm mb-8">You will need to login again to access the dashboard.</p>
+          <div class="flex gap-3">
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-zinc-400 hover:text-white transition-all">Cancel</button>
+            <button @click="executeLogout" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black active:scale-95 transition-all">Logout</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { db } from './lib/firebase';
+import { db, auth } from './lib/firebase'; // Make sure 'auth' is exported from your firebase config
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { signOut } from "firebase/auth"; // Import this for real logout
+
+const emit = defineEmits(['logout']); // Optional: for custom handling
 
 // State
 const books = ref([]);
-const users = ref([]);
 const notifications = ref([]);
 const borrowers = ref([]);
 const history = ref([]);
 const activeTab = ref('home');
 const showWelcome = ref(true);
 const showAddBookModal = ref(false);
+const showLogoutModal = ref(false); // Make sure this exists!
 const newBookTitle = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
 const dbStatus = ref('online');
 
+// Navigation
 const navItems = [
   { id: 'home', name: 'Dashboard', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { id: 'inventory', name: 'Inventory', path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
@@ -182,6 +202,24 @@ const navItems = [
   { id: 'borrowed', name: 'Borrowers', path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197' },
   { id: 'history', name: 'Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
 ];
+
+// Logic for Logout pre
+const executeLogout = async () => {
+  try {
+    if (auth) {
+      await signOut(auth); // Firebase Signout
+    }
+    emit('logout'); // Tell App.vue to show Login page
+    showLogoutModal.value = false;
+    
+    // Force reload para malinis ang states
+    window.location.reload(); 
+  } catch (error) {
+    console.error("Logout Error:", error);
+    // Pag nag-error, manual reload na lang
+    window.location.reload();
+  }
+};
 
 const stats = computed(() => [
   { label: 'Total Books', value: books.value.length, color: '' },
@@ -207,13 +245,8 @@ const loadData = () => {
 };
 
 const handleAction = async (notif, status) => {
-  const data = { 
-    ...notif, 
-    status, 
-    actionDate: serverTimestamp() 
-  };
+  const data = { ...notif, status, actionDate: serverTimestamp() };
   delete data.id;
-
   try {
     if (status === 'approved') {
       data.approvedAt = serverTimestamp();
@@ -226,13 +259,8 @@ const handleAction = async (notif, status) => {
 };
 
 const handleReturn = async (borrower) => {
-  const data = { 
-    ...borrower, 
-    status: 'returned', 
-    actionDate: serverTimestamp() 
-  };
+  const data = { ...borrower, status: 'returned', actionDate: serverTimestamp() };
   delete data.id;
-
   try {
     await addDoc(collection(db, "history"), data);
     await deleteDoc(doc(db, "borrowers", borrower.id));
@@ -251,16 +279,13 @@ const confirmDelete = async (id) => { await deleteDoc(doc(db, "books", id)); };
 </script>
 
 <style scoped>
-/* Base Fade */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
-/* Page Slide/Fade */
 .page-enter-active, .page-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 .page-enter-from { opacity: 0; transform: translateY(10px); }
 .page-leave-to { opacity: 0; transform: translateY(-10px); }
 
-/* List Animations */
 .list-enter-active, .list-leave-active { transition: all 0.5s ease; }
 .list-enter-from { opacity: 0; transform: translateX(-20px); }
 .list-leave-to { opacity: 0; transform: translateX(20px); }
