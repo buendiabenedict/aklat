@@ -146,9 +146,9 @@
     </div>
 
     <transition name="fade">
-      <div v-if="showModal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/95 backdrop-blur-md px-4 pb-10 sm:pb-0">
+      <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md px-6">
         <transition name="modal-pop">
-          <div v-if="showModal" class="bg-zinc-950 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full">
+          <div v-if="showModal" class="bg-zinc-950 border border-white/10 p-10 rounded-[3.5rem] max-w-sm w-full shadow-[0_0_80px_rgba(0,0,0,1)] text-center">
             <h2 class="text-3xl font-bold tracking-tighter mb-2">Loan Schedule</h2>
             <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-10">Select return date (Mon-Fri)</p>
             
@@ -159,20 +159,22 @@
                   v-model="returnDate" 
                   :min="minDate" 
                   @input="validateDate" 
-                  class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-6 px-6 text-white outline-none appearance-none font-bold" 
+                  class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-6 px-6 text-white outline-none appearance-none font-bold text-center" 
                 />
                 <p v-if="dateError" class="text-red-600 text-[9px] mt-4 font-black uppercase tracking-[0.2em]">{{ dateError }}</p>
               </div>
             </div>
 
-            <div class="flex gap-4 mt-12">
-              <button @click="closeModal" class="flex-1 py-4 text-zinc-600 font-bold uppercase text-[10px] tracking-widest">Abort</button>
+            <div class="flex flex-col gap-3 mt-10">
               <button 
                 @click="submitRequest" 
                 :disabled="!returnDate || dateError !== ''" 
-                class="flex-1 py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest disabled:opacity-20 transition-all"
+                class="w-full py-5 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest disabled:opacity-20 transition-all active:scale-95 shadow-xl shadow-white/5"
               >
-                Confirm
+                Confirm Request
+              </button>
+              <button @click="closeModal" class="w-full py-4 text-zinc-600 font-bold uppercase text-[10px] tracking-widest hover:text-white transition-colors">
+                Cancel
               </button>
             </div>
           </div>
@@ -194,7 +196,7 @@
     </transition>
 
     <transition name="slide-up">
-      <div v-if="showToast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white text-black px-10 py-4 rounded-full font-black text-[10px] uppercase tracking-widest z-[150] shadow-2xl">
+      <div v-if="showToast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white text-black px-10 py-4 rounded-full font-black text-[10px] uppercase tracking-widest z-[150] shadow-2xl text-center min-w-[280px]">
         Success: Entry Recorded
       </div>
     </transition>
@@ -253,17 +255,14 @@ const closeModal = () => {
   selectedBook.value = null;
 };
 
-// IMPROVED VALIDATION LOGIC
 const validateDate = () => {
   if (!returnDate.value) {
     dateError.value = "";
     return;
   }
-  
-  // Create date using local string parts to avoid timezone shifting
   const [year, month, day] = returnDate.value.split('-').map(Number);
   const selected = new Date(year, month - 1, day);
-  const dayOfWeek = selected.getDay(); // 0 = Sunday, 6 = Saturday
+  const dayOfWeek = selected.getDay();
 
   if (dayOfWeek === 0 || dayOfWeek === 6) {
     dateError.value = "Selected day is a weekend.";
@@ -307,7 +306,7 @@ const executeLogout = async () => {
 .list-enter-from { opacity: 0; transform: scale(0.95); }
 
 .modal-pop-enter-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.modal-pop-enter-from { opacity: 0; transform: translateY(100%) scale(0.9); }
+.modal-pop-enter-from { opacity: 0; transform: scale(0.9) translateY(40px); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.4s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
