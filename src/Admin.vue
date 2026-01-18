@@ -67,8 +67,55 @@
           </div>
         </div>
 
+        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
+          <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <input v-model="searchQuery" type="text" placeholder="Filter library..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none focus:border-white/30 transition-all" />
+            
+            <div class="flex gap-2">
+              <button @click="toggleSelectMode" :class="isSelectMode ? 'bg-zinc-800 text-white border-white/20' : 'bg-white/5 text-zinc-400 border-white/5'" class="px-6 py-4 rounded-xl font-bold border transition-all text-xs uppercase tracking-widest">
+                {{ isSelectMode ? 'Cancel Selection' : 'Select Books' }}
+              </button>
+              
+              <button v-if="!isSelectMode" @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">
+                New Entry
+              </button>
+
+              <button v-else @click="confirmBulkDelete" :disabled="selectedBooks.length === 0" :class="selectedBooks.length > 0 ? 'bg-red-600 opacity-100' : 'bg-red-900/50 opacity-50 cursor-not-allowed'" class="bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">
+                Delete ({{ selectedBooks.length }})
+              </button>
+            </div>
+          </div>
+
+          <div class="border border-white/10 rounded-3xl overflow-hidden bg-zinc-950 shadow-2xl">
+            <table class="w-full text-left">
+              <transition-group tag="tbody" name="list" class="divide-y divide-white/[0.03]">
+                <tr v-for="book in filteredBooks" :key="book.id" 
+                    @click="isSelectMode ? toggleBookSelection(book.id) : null"
+                    :class="[isSelectMode ? 'cursor-pointer' : '', selectedBooks.includes(book.id) ? 'bg-white/[0.05]' : '']"
+                    class="hover:bg-white/[0.02] transition-colors group">
+                  
+                  <td v-if="isSelectMode" class="pl-8 w-10">
+                    <div :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : 'border-white/20'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all">
+                      <div v-if="selectedBooks.includes(book.id)" class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </td>
+
+                  <td class="p-8 font-medium">
+                    <span :class="selectedBooks.includes(book.id) ? 'text-blue-400' : 'text-white'" class="transition-colors">{{ book.title }}</span>
+                  </td>
+                  
+                  <td class="p-8 text-right">
+                    <button v-if="!isSelectMode" @click.stop="confirmSingleDelete(book)" class="text-red-500/50 hover:text-red-500 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">Remove</button>
+                    <span v-else class="text-zinc-700 text-[10px] font-black uppercase tracking-widest">Select Mode</span>
+                  </td>
+                </tr>
+              </transition-group>
+            </table>
+          </div>
+        </section>
+
         <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-4">
-          <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests.</div>
+           <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests.</div>
           <transition-group name="list">
             <div v-for="notif in notifications" :key="notif.id" class="p-6 border border-white/20 rounded-2xl bg-zinc-950 flex justify-between items-center mb-4">
               <div class="flex gap-4 items-center">
@@ -117,33 +164,30 @@
             </div>
           </transition-group>
         </section>
-
-        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
-          <div class="flex gap-4 mb-8">
-            <input v-model="searchQuery" type="text" placeholder="Filter library..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none focus:border-white/30 transition-all" />
-            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold">New Entry</button>
-          </div>
-          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
-            <table class="w-full text-left">
-              <transition-group tag="tbody" name="list" class="divide-y divide-white/[0.03]">
-                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
-                  <td class="p-8 font-medium">{{ book.title }}</td>
-                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500 text-[10px] font-bold uppercase">Remove</button></td>
-                </tr>
-              </transition-group>
-            </table>
-          </div>
-        </section>
       </transition>
     </main>
 
     <transition name="fade">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 px-6 backdrop-blur-md">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center">
+          <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">⚠️</div>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Are you sure?</h3>
+          <p class="text-zinc-500 text-sm mb-8">You are about to delete {{ deleteTargetCount }} book(s). This action is permanent.</p>
+          <div class="flex gap-3">
+            <button @click="closeDeleteModal" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
+            <button @click="executeDeletion" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black">Confirm Delete</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center shadow-2xl">
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
           <p class="text-zinc-500 text-sm mb-8">Babalik ka sa login screen, pre.</p>
           <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-zinc-400">Cancel</button>
             <button @click="executeLogout" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black">Confirm</button>
           </div>
         </div>
@@ -169,10 +213,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, defineEmits } from 'vue';
 import { db, auth } from './lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
-// Define the signal to send to App.vue
 const emit = defineEmits(['logout']);
 
 // State
@@ -184,12 +227,18 @@ const activeTab = ref('home');
 const showWelcome = ref(true);
 const showAddBookModal = ref(false);
 const showLogoutModal = ref(false);
+const showDeleteModal = ref(false);
+
+// Multi-delete State
+const isSelectMode = ref(false);
+const selectedBooks = ref([]);
+const singleDeleteId = ref(null);
+
 const newBookTitle = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
 const dbStatus = ref('online');
 
-// Navigation
 const navItems = [
   { id: 'home', name: 'Dashboard', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { id: 'inventory', name: 'Inventory', path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
@@ -198,19 +247,56 @@ const navItems = [
   { id: 'history', name: 'Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
 ];
 
-// Logout Logic
-const executeLogout = async () => {
-  try {
-    if (auth) await signOut(auth);
-    console.log("Emitting logout signal...");
-    emit('logout'); // Eto yung importante!
-    showLogoutModal.value = false;
-  } catch (error) {
-    console.error("Error signing out:", error);
-    emit('logout'); // Force exit pa rin
-  }
+// Selection Handlers
+const toggleSelectMode = () => {
+  isSelectMode.value = !isSelectMode.value;
+  selectedBooks.value = [];
 };
 
+const toggleBookSelection = (id) => {
+  const index = selectedBooks.value.indexOf(id);
+  if (index > -1) selectedBooks.value.splice(index, 1);
+  else selectedBooks.value.push(id);
+};
+
+const confirmSingleDelete = (book) => {
+  singleDeleteId.value = book.id;
+  showDeleteModal.value = true;
+};
+
+const confirmBulkDelete = () => {
+  showDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  singleDeleteId.value = null;
+};
+
+const deleteTargetCount = computed(() => {
+  return singleDeleteId.value ? 1 : selectedBooks.value.length;
+});
+
+const executeDeletion = async () => {
+  try {
+    if (singleDeleteId.value) {
+      await deleteDoc(doc(db, "books", singleDeleteId.value));
+    } else {
+      const batch = writeBatch(db);
+      selectedBooks.value.forEach(id => {
+        batch.delete(doc(db, "books", id));
+      });
+      await batch.commit();
+    }
+    
+    // Reset state after delete
+    isSelectMode.value = false;
+    selectedBooks.value = [];
+    closeDeleteModal();
+  } catch (err) { console.error("Deletion failed:", err); }
+};
+
+// Data Logic
 const stats = computed(() => [
   { label: 'Books', value: books.value.length, color: '' },
   { label: 'Pending', value: notifications.value.length, color: 'text-red-500' },
@@ -222,6 +308,14 @@ const formatTimestamp = (ts) => {
   if (!ts) return 'Now';
   const date = ts.toDate ? ts.toDate() : new Date(ts);
   return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const executeLogout = async () => {
+  try {
+    if (auth) await signOut(auth);
+    emit('logout');
+    showLogoutModal.value = false;
+  } catch (error) { emit('logout'); }
 };
 
 const loadData = () => {
@@ -265,7 +359,6 @@ onMounted(() => { loadData(); updateTime(); timer = setInterval(updateTime, 1000
 onUnmounted(() => clearInterval(timer));
 
 const addBook = async () => { if (!newBookTitle.value.trim()) return; await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() }); newBookTitle.value = ''; showAddBookModal.value = false; };
-const confirmDelete = async (id) => { await deleteDoc(doc(db, "books", id)); };
 </script>
 
 <style scoped>
