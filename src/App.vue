@@ -16,11 +16,12 @@
         <div class="ios-spinner">
           <div v-for="i in 12" :key="i" :class="'bar' + i"></div>
         </div>
-        <p class="mt-8 text-white/40 text-[10px] tracking-[0.4em] uppercase font-bold animate-pulse">Initializing AKLAT System</p>
+        <p class="mt-8 text-white/40 text-[10px] tracking-[0.4em] uppercase font-bold animate-pulse">Synchronizing AKLAT Cloud</p>
       </div>
     </transition>
 
     <transition name="page-swap" mode="out-in">
+      
       <div v-if="!currentView && !isSystemLoading && !showGreeting" key="auth" class="w-full min-h-screen relative flex items-center justify-center p-6">
         
         <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -40,43 +41,35 @@
                 
                 <div v-if="!isLogin" key="signup" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
-                    <h2 class="text-3xl font-semibold text-white tracking-tight">Register</h2>
-                    <p class="text-zinc-500 text-sm">Join the AKLAT library system.</p>
+                    <h2 class="text-3xl font-semibold text-white tracking-tight">Create Account</h2>
+                    <p class="text-zinc-500 text-sm">Join the digital library network.</p>
                   </header>
-                  
                   <form @submit.prevent="handleSignup" class="space-y-4 w-full text-left">
                     <input v-model="form.name" type="text" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Full Name" />
-                    <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email Address" />
+                    <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
                     <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
                     <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl transition-all active:scale-[0.98]">
-                      {{ authLoading ? 'Registering...' : 'Create Account' }}
+                      {{ authLoading ? 'Registering...' : 'Register' }}
                     </button>
                     <p v-if="errorMsg" class="text-red-400 text-[10px] font-bold text-center uppercase tracking-widest mt-2">{{ errorMsg }}</p>
                   </form>
-                  
-                  <p class="text-zinc-500 text-sm">
-                    Already a member? <button @click="toggleForm(true)" class="text-white font-semibold hover:underline">Log In</button>
-                  </p>
+                  <p class="text-zinc-500 text-sm">Member? <button @click="toggleForm(true)" class="text-white font-semibold hover:underline">Log In</button></p>
                 </div>
 
                 <div v-else key="login" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
-                    <h2 class="text-3xl font-semibold text-white tracking-tight">Welcome</h2>
-                    <p class="text-zinc-500 text-sm">Sign in to access the library.</p>
+                    <h2 class="text-3xl font-semibold text-white tracking-tight">Sign In</h2>
+                    <p class="text-zinc-500 text-sm">Access your personal archive.</p>
                   </header>
-                  
                   <form @submit.prevent="handleLogin" class="space-y-5 w-full text-left">
                     <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
                     <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
                     <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl active:scale-[0.98]">
-                      {{ authLoading ? 'Verifying...' : 'Sign In' }}
+                      {{ authLoading ? 'Identifying...' : 'Continue' }}
                     </button>
                     <p v-if="errorMsg" class="text-white text-[10px] font-bold text-center uppercase tracking-widest mt-4">{{ errorMsg }}</p>
                   </form>
-
-                  <p class="text-zinc-500 text-sm">
-                    Don't have an account? <button @click="toggleForm(false)" class="text-white font-semibold hover:underline">Join Now</button>
-                  </p>
+                  <p class="text-zinc-500 text-sm">New here? <button @click="toggleForm(false)" class="text-white font-semibold hover:underline">Join Now</button></p>
                 </div>
 
               </transition>
@@ -86,26 +79,13 @@
           <div class="w-full lg:max-w-xl text-center lg:text-left space-y-8 order-1 lg:order-2">
             <h1 class="text-7xl md:text-9xl font-bold tracking-tighter leading-[0.8] ios-gradient-text animate-reveal">AKLAT.<br/>SYSTEM.</h1>
             <p class="text-xl md:text-2xl text-zinc-400 font-medium max-w-md mx-auto lg:mx-0 animate-reveal" style="animation-delay: 0.2s">Simple. Secure. Accessible everywhere.</p>
-            <div class="flex items-center justify-center lg:justify-start gap-4 text-zinc-600 font-bold text-[10px] uppercase tracking-[0.4em] animate-reveal" style="animation-delay: 0.4s">
-              <span>v.1.1.0 Alpha</span>
-              <span class="w-1 h-1 bg-white rounded-full"></span>
-              <span>Cloudflare Deployed</span>
-            </div>
           </div>
-
         </div>
       </div>
 
       <Admin v-else-if="currentView === 'admin'" key="admin" class="fixed inset-0 w-full h-full z-50" @logout="handleLogout" />
       
-      <div v-else-if="currentView === 'user'" key="user-view" class="h-screen w-full flex flex-col items-center justify-center text-white bg-black p-6">
-        <div class="text-center space-y-8 animate-reveal">
-          <p class="text-zinc-600 uppercase tracking-[0.6em] text-[10px] mb-4">Access Granted</p>
-          <h1 class="text-6xl font-bold tracking-tighter uppercase">Student Portal</h1>
-          <p class="text-zinc-500 max-w-sm mx-auto italic">"Reading is dreaming with open eyes."</p>
-          <button @click="handleLogout" class="px-12 py-4 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all font-bold uppercase tracking-widest text-xs">Logout</button>
-        </div>
-      </div>
+      <User v-else-if="currentView === 'user'" key="user" class="fixed inset-0 w-full h-full z-50" @logout="handleLogout" />
 
     </transition>
   </div>
@@ -114,11 +94,12 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import Admin from './Admin.vue';
+import User from './User.vue'; // New Import!
 import { auth, db } from './lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
-// --- STATE MANAGEMENT ---
+// State
 const currentView = ref(null);
 const isSystemLoading = ref(true);
 const showGreeting = ref(true);
@@ -130,15 +111,11 @@ const greetingIndex = ref(0);
 const greetings = ["Hello", "Bonjour", "Hola", "Mabuhay"];
 const form = reactive({ name: '', email: '', password: '' });
 
-// --- UTILITIES ---
-
-// Smoothly adjust container height when switching forms
+// Methods
 const updateHeight = () => {
   nextTick(() => {
     const activeEl = document.querySelector('.p-10');
-    if (activeEl) {
-      containerHeight.value = activeEl.offsetHeight;
-    }
+    if (activeEl) containerHeight.value = activeEl.offsetHeight;
   });
 };
 
@@ -147,31 +124,15 @@ const toggleForm = (val) => {
   isLogin.value = val;
 };
 
-// Language rotation for the welcome screen
 const startGreetingSequence = () => {
   const interval = setInterval(() => {
     if (greetingIndex.value < greetings.length - 1) {
       greetingIndex.value++;
     } else {
       clearInterval(interval);
-      setTimeout(() => {
-        showGreeting.value = false;
-      }, 800);
+      setTimeout(() => { showGreeting.value = false; }, 800);
     }
   }, 1000);
-};
-
-// --- FIREBASE LOGIC ---
-const saveUserToDatabase = async (user, name = null) => {
-  try {
-    const is_admin = user.email.includes('admin');
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      fullName: name || user.displayName || 'User',
-      role: is_admin ? 'Admin' : 'Member',
-      lastLogin: serverTimestamp()
-    }, { merge: true });
-  } catch (e) { console.error("Database sync error:", e); }
 };
 
 const handleSignup = async () => {
@@ -179,7 +140,12 @@ const handleSignup = async () => {
   errorMsg.value = "";
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-    await saveUserToDatabase(userCredential.user, form.name);
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      email: form.email,
+      fullName: form.name,
+      role: form.email.includes('admin') ? 'Admin' : 'Member',
+      createdAt: serverTimestamp()
+    });
     isLogin.value = true;
   } catch (err) { errorMsg.value = err.message; }
   finally { authLoading.value = false; }
@@ -189,10 +155,8 @@ const handleLogin = async () => {
   authLoading.value = true;
   errorMsg.value = "";
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-    await saveUserToDatabase(userCredential.user);
-    // Automatic view switching handled by onAuthStateChanged
-  } catch (err) { errorMsg.value = "Authentication failed. Check your credentials."; }
+    await signInWithEmailAndPassword(auth, form.email, form.password);
+  } catch (err) { errorMsg.value = "Invalid login credentials."; }
   finally { authLoading.value = false; }
 };
 
@@ -201,10 +165,8 @@ const handleLogout = async () => {
   currentView.value = null;
 };
 
-// --- LIFECYCLE ---
 onMounted(() => {
   startGreetingSequence();
-  
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentView.value = user.email.includes('admin') ? 'admin' : 'user';
@@ -212,29 +174,19 @@ onMounted(() => {
       currentView.value = null;
     }
   });
-
-  // Simulated system init delay
-  setTimeout(() => { 
-    isSystemLoading.value = false;
-    updateHeight();
-  }, 5000);
+  setTimeout(() => { isSystemLoading.value = false; updateHeight(); }, 5000);
 });
 </script>
 
 <style>
-/* Base Typography & Aesthetics */
+/* CSS Styles remain identical to your current styling to maintain consistency */
 .font-ios { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; }
 .ios-gradient-text { background: linear-gradient(180deg, #FFFFFF 0%, #3F3F46 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-/* 1. Greeting Animations */
 .greeting-fade-leave-active { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); }
 .greeting-fade-leave-to { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-
 .word-rotate-enter-active, .word-rotate-leave-active { transition: all 0.5s ease; }
 .word-rotate-enter-from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
 .word-rotate-leave-to { opacity: 0; transform: translateY(-20px); filter: blur(10px); }
-
-/* 2. Apple-style Spinner */
 .ios-spinner { position: relative; width: 32px; height: 32px; }
 .ios-spinner div { position: absolute; left: 46%; top: 10%; width: 8%; height: 25%; background: white; border-radius: 50px; opacity: 0.1; animation: ios-fade 1s linear infinite; }
 @keyframes ios-fade { from { opacity: 1; } to { opacity: 0.1; } }
@@ -250,17 +202,12 @@ onMounted(() => {
 .bar10 { transform: rotate(270deg) translate(0, -100%); animation-delay: -0.25s !important; }
 .bar11 { transform: rotate(300deg) translate(0, -100%); animation-delay: -0.166s !important; }
 .bar12 { transform: rotate(330deg) translate(0, -100%); animation-delay: -0.083s !important; }
-
-/* 3. Form Morphing Logic (Anti-Glitch) */
 .form-morph-enter-active, .form-morph-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 .form-morph-enter-from { opacity: 0; transform: scale(0.98) translateY(10px); }
 .form-morph-leave-to { opacity: 0; transform: scale(0.98) translateY(-10px); }
-
-/* Aesthetic Orbs */
 .orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.1; pointer-events: none; }
 .orb-1 { width: 800px; height: 800px; background: radial-gradient(circle, #ffffff 0%, transparent 70%); top: -400px; left: -200px; }
 .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, #52525b 0%, transparent 70%); bottom: -300px; right: -100px; }
-
 @keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .animate-reveal { opacity: 0; animation: reveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 </style>
