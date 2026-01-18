@@ -30,31 +30,33 @@
         <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 py-4">
           <section>
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none italic-none">Overview</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
           </section>
 
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-[2rem]">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-[2rem] transition-all hover:border-white/10">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
               <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
             </div>
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-[2rem]">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-[2rem] transition-all hover:border-white/10">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
               <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
             </div>
           </div>
           
-          <div @click="activeTab = 'requests'" v-if="pendingRequests.length > 0" class="bg-blue-600 p-8 rounded-[2.5rem] cursor-pointer active:scale-[0.98] transition-all">
-            <div class="flex justify-between items-center text-black">
-              <div>
-                <h3 class="text-2xl font-black tracking-tighter uppercase mb-1">Pending Requests</h3>
-                <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">{{ pendingRequests.length }} authorizations required</p>
-              </div>
-              <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black">
-                {{ pendingRequests.length }}
+          <transition name="fade">
+            <div @click="activeTab = 'requests'" v-if="pendingRequests.length > 0" class="bg-blue-600 p-8 rounded-[2.5rem] cursor-pointer active:scale-[0.98] transition-all shadow-xl shadow-blue-900/20">
+              <div class="flex justify-between items-center text-black">
+                <div>
+                  <h3 class="text-2xl font-black tracking-tighter uppercase mb-1">Pending Requests</h3>
+                  <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">{{ pendingRequests.length }} authorizations required</p>
+                </div>
+                <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black">
+                  {{ pendingRequests.length }}
+                </div>
               </div>
             </div>
-          </div>
+          </transition>
         </div>
 
         <!-- INVENTORY TAB -->
@@ -69,17 +71,17 @@
             </button>
           </section>
           
-          <div class="space-y-2">
-            <div v-for="book in books" :key="book.id" class="p-6 bg-zinc-950 border border-white/5 rounded-[1.5rem] flex items-center justify-between group">
+          <transition-group name="list" tag="div" class="space-y-2">
+            <div v-for="book in books" :key="book.id" class="p-6 bg-zinc-950 border border-white/5 rounded-[1.5rem] flex items-center justify-between group transition-all hover:bg-zinc-900/50">
               <div>
                 <h3 class="text-base font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
                 <p class="text-[8px] text-zinc-700 uppercase tracking-[0.2em] font-black mt-2">UID: {{ book.id.slice(0,10) }}</p>
               </div>
-              <button @click="deleteBook(book.id)" class="w-10 h-10 flex items-center justify-center text-zinc-800 hover:text-red-500 transition-colors active:scale-90">
+              <button @click="confirmDelete(book)" class="w-10 h-10 flex items-center justify-center text-zinc-800 hover:text-red-500 transition-colors active:scale-90">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
             </div>
-          </div>
+          </transition-group>
         </div>
 
         <!-- REQUESTS TAB -->
@@ -93,18 +95,20 @@
             <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">No Pending Requests</p>
           </div>
 
-          <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-950 border border-white/5 p-8 rounded-[2.5rem] mb-6 shadow-2xl">
-            <h3 class="text-2xl font-bold tracking-tighter uppercase leading-none mb-3">{{ req.bookTitle }}</h3>
-            <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-6">{{ req.userEmail }}</p>
-            <div class="bg-zinc-900/50 p-4 rounded-2xl mb-8 border border-white/5">
-              <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Return Protocol</p>
-              <p class="text-sm font-black text-white uppercase">{{ req.returnSchedule }} — 07:30 AM</p>
+          <transition-group name="list" tag="div">
+            <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-950 border border-white/5 p-8 rounded-[2.5rem] mb-6 shadow-2xl">
+              <h3 class="text-2xl font-bold tracking-tighter uppercase leading-none mb-3">{{ req.bookTitle }}</h3>
+              <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-6">{{ req.userEmail }}</p>
+              <div class="bg-zinc-900/50 p-4 rounded-2xl mb-8 border border-white/5">
+                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Return Protocol</p>
+                <p class="text-sm font-black text-white uppercase">{{ req.returnSchedule }} — 07:30 AM</p>
+              </div>
+              <div class="flex gap-3">
+                <button @click="approveRequest(req)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Authorize</button>
+                <button @click="declineRequest(req.id)" class="flex-1 py-5 bg-zinc-900 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
+              </div>
             </div>
-            <div class="flex gap-3">
-              <button @click="approveRequest(req)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Authorize</button>
-              <button @click="declineRequest(req.id)" class="flex-1 py-5 bg-zinc-900 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
-            </div>
-          </div>
+          </transition-group>
         </div>
 
         <!-- BORROWERS TAB -->
@@ -118,18 +122,20 @@
             <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">Zero Active Loans</p>
           </div>
 
-          <div v-for="person in borrowers" :key="person.id" 
-               class="p-8 bg-zinc-950 rounded-[2.5rem] mb-4 flex justify-between items-center border border-white/5 shadow-xl transition-all">
-            <div class="flex-1">
-              <h3 class="text-lg font-black uppercase tracking-tighter mb-1 leading-none">{{ person.bookTitle }}</h3>
-              <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-5">{{ person.userEmail }}</p>
-              <p class="text-[11px] font-mono font-bold text-blue-500 uppercase tracking-tighter">Due: {{ person.returnSchedule }} — 07:30 AM</p>
+          <transition-group name="list" tag="div">
+            <div v-for="person in borrowers" :key="person.id" 
+                 class="p-8 bg-zinc-950 rounded-[2.5rem] mb-4 flex justify-between items-center border border-white/5 shadow-xl transition-all">
+              <div class="flex-1">
+                <h3 class="text-lg font-black uppercase tracking-tighter mb-1 leading-none">{{ person.bookTitle }}</h3>
+                <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-5">{{ person.userEmail }}</p>
+                <p class="text-[11px] font-mono font-bold text-blue-500 uppercase tracking-tighter">Due: {{ person.returnSchedule }} — 07:30 AM</p>
+              </div>
+              <button @click="markAsReturned(person)" 
+                      class="px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all shadow-lg shadow-white/5">
+                Return
+              </button>
             </div>
-            <button @click="markAsReturned(person)" 
-                    class="px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all shadow-lg shadow-white/5">
-              Return
-            </button>
-          </div>
+          </transition-group>
         </div>
 
         <!-- HISTORY LOGS TAB -->
@@ -139,11 +145,11 @@
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Audit Record</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">History</h2>
             </div>
-            <button @click="clearLogs" class="text-[8px] font-black uppercase tracking-widest text-zinc-500 border border-white/5 px-4 py-2 rounded-full active:opacity-50">Reset</button>
+            <button @click="showResetModal = true" class="text-[8px] font-black uppercase tracking-widest text-zinc-500 border border-white/5 px-4 py-2 rounded-full active:opacity-50 transition-all hover:bg-white/5">Reset</button>
           </section>
 
-          <div class="space-y-2">
-            <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-950 border border-white/5 rounded-[1.5rem] flex justify-between items-center">
+          <transition-group name="list" tag="div" class="space-y-2">
+            <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-950 border border-white/5 rounded-[1.5rem] flex justify-between items-center transition-all">
               <div>
                 <p class="text-[11px] font-bold uppercase tracking-tight mb-1">{{ log.bookTitle }}</p>
                 <p class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">{{ log.userEmail }}</p>
@@ -153,7 +159,7 @@
                 <p class="text-[7px] text-zinc-800 font-mono mt-1 font-bold">{{ formatTimestamp(log.createdAt) }}</p>
               </div>
             </div>
-          </div>
+          </transition-group>
         </div>
 
       </transition>
@@ -181,7 +187,7 @@
 
     <!-- MODAL: ADD BOOK -->
     <transition name="fade">
-      <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+      <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
           <h2 class="text-3xl font-bold tracking-tighter mb-8 uppercase apple-gradient leading-none">Add Asset</h2>
           <div class="space-y-1.5 mb-10">
@@ -191,6 +197,50 @@
           <div class="flex gap-3">
             <button @click="addBook" class="flex-[2] py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Register</button>
             <button @click="showAddModal = false" class="flex-1 py-5 bg-zinc-900 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- MODAL: DELETE CONFIRMATION -->
+    <transition name="fade">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase leading-none">Delete Asset?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10 leading-relaxed px-4">
+            You are about to permanently remove<br>
+            <span class="text-white">{{ bookToDelete?.title }}</span>
+          </p>
+          <div class="flex gap-3">
+            <button @click="deleteBook" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Delete</button>
+            <button @click="showDeleteModal = false" class="flex-1 py-5 bg-zinc-900 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- MODAL: RESET HISTORY CONFIRMATION -->
+    <transition name="fade">
+      <div v-if="showResetModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 7.717l.547 1.022M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 7.717l.547 1.022M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase leading-none">Clear Logs?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10 leading-relaxed px-4">
+            This will perform a system wipe on<br>
+            all transaction history.
+          </p>
+          <div class="flex gap-3">
+            <button @click="clearLogs" class="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Clear All</button>
+            <button @click="showResetModal = false" class="flex-1 py-5 bg-zinc-900 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
           </div>
         </div>
       </div>
@@ -210,7 +260,12 @@ const users = ref([]);
 const notifications = ref([]);
 const borrowers = ref([]);
 const historyLogs = ref([]);
+
 const showAddModal = ref(false);
+const showDeleteModal = ref(false);
+const showResetModal = ref(false);
+
+const bookToDelete = ref(null);
 const newBook = ref({ title: '' });
 const currentTimeDisplay = ref('');
 
@@ -224,28 +279,16 @@ onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
 
-  // Sync Books
   onSnapshot(collection(db, "books"), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
-  
-  // Sync Users
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
-  
-  // Sync Notifications/Requests
   onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => {
     notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
-  
-  // Sync History Logs
   onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
     historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
-  
-  // FIXED SYNC: Sinisigurado na ang "id" na nakukuha ay ang Firestore Doc UID
   onSnapshot(collection(db, "borrowers"), (s) => {
-    borrowers.value = s.docs.map(d => ({ 
-      id: d.id, // Ang UID ng document mismo (e.g. "xQXbgA8YBBiNkCjgveRg")
-      ...d.data() 
-    }));
+    borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
 });
 
@@ -263,14 +306,20 @@ const addBook = async () => {
   showAddModal.value = false;
 };
 
-const deleteBook = async (id) => {
-  await deleteDoc(doc(db, "books", id));
+const confirmDelete = (book) => {
+  bookToDelete.value = book;
+  showDeleteModal.value = true;
+};
+
+const deleteBook = async () => {
+  if (!bookToDelete.value) return;
+  await deleteDoc(doc(db, "books", bookToDelete.value.id));
+  showDeleteModal.value = false;
+  bookToDelete.value = null;
 };
 
 const approveRequest = async (req) => {
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
-  
-  // Kapag nag-approve, ang document ay mapupunta sa borrowers collection
   await addDoc(collection(db, "borrowers"), { 
     bookTitle: req.bookTitle,
     userId: req.userId,
@@ -280,7 +329,6 @@ const approveRequest = async (req) => {
     approvedAt: serverTimestamp(),
     createdAt: serverTimestamp()
   });
-  
   await addDoc(collection(db, "history"), { 
     bookTitle: req.bookTitle,
     userEmail: req.userEmail,
@@ -293,13 +341,8 @@ const declineRequest = async (id) => {
   await updateDoc(doc(db, "notifications", id), { status: 'declined' });
 };
 
-/**
- * FIXED RETURN LOGIC:
- * Ginagamit ang person.id (Firestore Doc UID) para i-delete ang specific entry.
- */
 const markAsReturned = async (person) => {
   try {
-    // 1. I-save muna sa history bago burahin
     await addDoc(collection(db, "history"), {
       bookTitle: person.bookTitle,
       userEmail: person.userEmail,
@@ -308,11 +351,7 @@ const markAsReturned = async (person) => {
       status: 'returned',
       createdAt: serverTimestamp()
     });
-
-    // 2. Burahin ang specific record gamit ang Firestore Document ID
     await deleteDoc(doc(db, "borrowers", person.id));
-    
-    console.log("Success: Record removed from borrowers page.");
   } catch (err) {
     console.error("Return operation failed:", err);
   }
@@ -331,18 +370,27 @@ const formatTimestamp = (ts) => {
 };
 
 const clearLogs = async () => {
-  if (confirm("System Wipe: Clear all audit logs?")) {
-    const batch = writeBatch(db);
-    historyLogs.value.forEach(l => batch.delete(doc(db, "history", l.id)));
-    await batch.commit();
-  }
+  const batch = writeBatch(db);
+  historyLogs.value.forEach(l => batch.delete(doc(db, "history", l.id)));
+  await batch.commit();
+  showResetModal.value = false;
 }
 </script>
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Page Transitions */
 .page-enter-active, .page-leave-active { transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .page-enter-from, .page-leave-to { opacity: 0; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease; }
+
+/* Simple Fade */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* List Item Animations */
+.list-enter-active, .list-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.list-enter-from { opacity: 0; transform: translateY(10px); }
+.list-leave-to { opacity: 0; transform: scale(0.95); }
+.list-move { transition: transform 0.4s ease; }
 </style>
