@@ -106,22 +106,22 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
           <div v-for="person in borrowers" :key="person.id" 
-               :class="isOverdue(person.returnSchedule) ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
+               :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
                class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-all duration-500">
             <div class="max-w-[60%]">
               <h3 class="text-sm font-black uppercase tracking-tighter leading-none truncate">{{ person.bookTitle }}</h3>
-              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="isOverdue(person.returnSchedule) ? 'text-white/70' : 'text-zinc-500'">
+              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="getRemainingMs(person.returnSchedule) <= 0 ? 'text-white/70' : 'text-zinc-500'">
                 {{ person.userEmail }}
               </p>
               <div class="mt-2 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="isOverdue(person.returnSchedule) ? 'bg-white' : 'bg-blue-600'"></span>
+                <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white' : 'bg-blue-600'"></span>
                 <span class="text-[10px] font-black font-mono tracking-tighter">
                   {{ formatCountdown(person.returnSchedule) }}
                 </span>
               </div>
             </div>
             <button @click="markAsReturned(person)" 
-                    :class="isOverdue(person.returnSchedule) ? 'bg-white text-red-600' : 'bg-black text-white'"
+                    :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white text-red-600' : 'bg-black text-white'"
                     class="px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
               Returned
             </button>
@@ -245,7 +245,6 @@ const showLogoutModal = ref(false);
 const batchTitleInput = ref('');
 const currentTime = ref('');
 
-// Reactive Global Timer
 const timerRef = ref(Date.now());
 let clockInterval;
 
@@ -258,13 +257,18 @@ const updateClock = () => {
 };
 
 /**
- * 🛠️ CALCULATION FROM returnSchedule
- * This matches the logic on your User Side.
+ * 🛠️ THE MATCH FIX: Local Date Parsing
+ * Sa halip na rekta `new Date(string)`, papalitan natin ang dashes ng slashes
+ * para pilitin ang browser na basahin ito bilang Local Time, hindi UTC.
  */
 const getRemainingMs = (schedule) => {
   if (!schedule) return 0;
-  // schedule is the "returnSchedule" field from borrowers collection
-  const target = new Date(schedule).getTime();
+  
+  // Pinalitan ang dashes (-) ng slashes (/) para sa cross-browser consistency
+  // At siniguradong local time ang pag-parse
+  const fixedSchedule = schedule.replace(/-/g, '/');
+  const target = new Date(fixedSchedule).getTime();
+  
   if (isNaN(target)) return 0;
   return target - timerRef.value;
 };
@@ -281,10 +285,8 @@ const formatCountdown = (schedule) => {
   return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
 };
 
-const isOverdue = (schedule) => getRemainingMs(schedule) <= 0;
-
 const hasOverdue = computed(() => {
-  return borrowers.value.some(p => isOverdue(p.returnSchedule));
+  return borrowers.value.some(p => getRemainingMs(p.returnSchedule) <= 0);
 });
 
 onMounted(() => {
@@ -339,7 +341,6 @@ const deleteSelectedBooks = async () => {
 
 const approveRequest = async (req) => {
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
-  // Map returnDate from request to returnSchedule in borrowers collection
   await addDoc(collection(db, "borrowers"), { 
     ...req, 
     returnSchedule: req.returnDate, 
