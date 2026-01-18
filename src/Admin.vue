@@ -1,6 +1,17 @@
 <template>
   <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden pb-40 text-left">
     
+    <!-- WELCOME SEQUENCE -->
+    <transition name="welcome-fade">
+      <div v-if="showWelcome" class="fixed inset-0 z-[200] bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div class="text-center">
+          <p class="text-[10px] font-black text-blue-500 uppercase tracking-[0.5em] mb-4 animate-pulse">Authentication Successful</p>
+          <h1 class="text-4xl md:text-6xl font-bold tracking-tighter uppercase apple-gradient mb-2">Welcome</h1>
+          <h2 class="text-2xl md:text-4xl font-black tracking-tighter uppercase opacity-40">Administrator</h2>
+        </div>
+      </div>
+    </transition>
+
     <!-- Top Header -->
     <header class="p-6 flex justify-between items-center relative z-20">
       <div class="flex items-center gap-3">
@@ -14,7 +25,20 @@
           <p class="text-[10px] font-black text-white mt-1 uppercase tracking-widest opacity-80">{{ currentTimeDisplay }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
+      
+      <div class="flex items-center gap-5">
+        <!-- Social Buttons -->
+        <a href="https://www.facebook.com/ben.benedict.31392" target="_blank" class="text-white opacity-40 hover:opacity-100 transition-opacity active:scale-90">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/>
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/buendia.benedict/" target="_blank" class="text-white opacity-40 hover:opacity-100 transition-opacity active:scale-90">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </a>
+
         <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'text-white' : 'text-zinc-500'" class="transition-colors active:scale-90">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -23,7 +47,7 @@
       </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-6 relative z-10">
+    <main v-if="!showWelcome" class="max-w-5xl mx-auto px-6 relative z-10">
       <transition name="page" mode="out-in">
         
         <!-- DASHBOARD TAB -->
@@ -85,12 +109,7 @@
             </div>
           </section>
           
-          <div v-if="books.length === 0" class="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-zinc-800 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-            <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">Inventory is Empty</p>
-          </div>
-
-          <transition-group v-else name="list" tag="div" class="space-y-2">
+          <transition-group name="list" tag="div" class="space-y-2">
             <div v-for="book in books" :key="book.id" 
                  @click="toggleBookSelection(book.id)"
                  :class="selectedBooks.includes(book.id) ? 'bg-zinc-800 border-blue-500/50' : 'bg-zinc-900 border-white/5'"
@@ -119,12 +138,7 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Approvals</h2>
           </section>
 
-          <div v-if="pendingRequests.length === 0" class="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-zinc-800 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">No Pending Requests</p>
-          </div>
-
-          <transition-group v-else name="list" tag="div">
+          <transition-group name="list" tag="div">
             <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-900 border border-white/5 p-8 rounded-[2.5rem] mb-6 shadow-2xl">
               <h3 class="text-2xl font-bold tracking-tighter uppercase leading-none mb-3">{{ req.bookTitle }}</h3>
               <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-6">{{ req.userEmail }}</p>
@@ -147,12 +161,7 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Borrowers</h2>
           </section>
           
-          <div v-if="borrowers.length === 0" class="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-zinc-800 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">Zero Active Loans</p>
-          </div>
-
-          <transition-group v-else name="list" tag="div">
+          <transition-group name="list" tag="div">
             <div v-for="person in borrowers" :key="person.id" 
                  class="p-8 bg-zinc-900 rounded-[2.5rem] mb-4 flex justify-between items-center border border-white/5 shadow-xl transition-all">
               <div class="flex-1">
@@ -175,12 +184,7 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Community</h2>
           </section>
 
-          <div v-if="users.length === 0" class="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-zinc-800 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
-            <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">No registered users</p>
-          </div>
-
-          <transition-group v-else name="list" tag="div" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <transition-group name="list" tag="div" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="user in users" :key="user.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[2rem] flex items-center gap-4 transition-all hover:bg-zinc-800">
               <div class="w-12 h-12 bg-zinc-950 rounded-full flex items-center justify-center text-zinc-500 border border-white/10">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -259,12 +263,7 @@
             <button @click="showResetModal = true" class="text-[8px] font-black uppercase tracking-widest text-zinc-500 border border-white/5 px-4 py-2 rounded-full active:opacity-50 transition-all hover:bg-white/5">Reset</button>
           </section>
 
-          <div v-if="historyLogs.length === 0" class="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-zinc-800 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            <p class="text-zinc-800 font-bold uppercase text-[10px] tracking-[0.5em]">No History Found</p>
-          </div>
-
-          <transition-group v-else name="list" tag="div" class="space-y-2">
+          <transition-group name="list" tag="div" class="space-y-2">
             <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[1.5rem] flex justify-between items-center transition-all">
               <div>
                 <p class="text-[11px] font-bold uppercase tracking-tight mb-1">{{ log.bookTitle }}</p>
@@ -282,7 +281,7 @@
     </main>
 
     <!-- COMPACT NAVIGATION BAR -->
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[360px] px-6">
+    <div v-if="!showWelcome" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[360px] px-6">
       <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl">
         <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" :key="tab" @click="activeTab = tab" 
                 :class="activeTab === tab ? 'bg-white text-black shadow-lg scale-95' : 'text-zinc-500 hover:text-zinc-300'" 
@@ -302,7 +301,7 @@
       </nav>
     </div>
 
-    <!-- MODAL: ADD BOOK -->
+    <!-- MODALS: ADD, BATCH DELETE, APPROVE, DECLINE, RETURN, DELETE, RESET -->
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
@@ -319,7 +318,6 @@
       </div>
     </transition>
 
-    <!-- MODAL: BATCH DELETE CONFIRMATION -->
     <transition name="fade">
       <div v-if="showBatchDeleteModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
@@ -338,27 +336,6 @@
       </div>
     </transition>
 
-    <!-- MODAL: APPROVE CONFIRMATION -->
-    <transition name="fade">
-      <div v-if="showApproveModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
-        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
-          <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" /></svg>
-          </div>
-          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase leading-none">Authorize?</h2>
-          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10 leading-relaxed px-4">
-            granting access to<br>
-            <span class="text-white">{{ activeRequest?.userEmail }}</span>
-          </p>
-          <div class="flex gap-3">
-            <button @click="approveRequest(activeRequest)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Approve</button>
-            <button @click="showApproveModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <!-- MODAL: DECLINE CONFIRMATION -->
     <transition name="fade">
       <div v-if="showDeclineModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
@@ -378,7 +355,25 @@
       </div>
     </transition>
 
-    <!-- MODAL: RETURN CONFIRMATION -->
+    <transition name="fade">
+      <div v-if="showApproveModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase leading-none">Authorize?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10 leading-relaxed px-4">
+            granting access to<br>
+            <span class="text-white">{{ activeRequest?.userEmail }}</span>
+          </p>
+          <div class="flex gap-3">
+            <button @click="approveRequest(activeRequest)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Approve</button>
+            <button @click="showApproveModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <transition name="fade">
       <div v-if="showReturnModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
@@ -398,12 +393,11 @@
       </div>
     </transition>
 
-    <!-- MODAL: DELETE CONFIRMATION -->
     <transition name="fade">
       <div v-if="showDeleteModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
-          <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <div class="w-16 h-16 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </div>
@@ -420,7 +414,6 @@
       </div>
     </transition>
 
-    <!-- MODAL: RESET HISTORY CONFIRMATION -->
     <transition name="fade">
       <div v-if="showResetModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
@@ -448,6 +441,7 @@ import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { db } from './lib/firebase';
 import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy, writeBatch } from "firebase/firestore";
 
+const showWelcome = ref(true);
 const activeTab = ref('dashboard');
 const books = ref([]);
 const users = ref([]);
@@ -480,6 +474,11 @@ const updateClock = () => {
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
+
+  // Welcome Animation Timer
+  setTimeout(() => {
+    showWelcome.value = false;
+  }, 3000);
 
   onSnapshot(collection(db, "books"), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -625,6 +624,13 @@ const clearLogs = async () => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Welcome Sequence Transition */
+.welcome-fade-enter-active, .welcome-fade-leave-active { 
+  transition: all 1s cubic-bezier(0.65, 0, 0.35, 1); 
+}
+.welcome-fade-enter-from { opacity: 0; }
+.welcome-fade-leave-to { opacity: 0; transform: scale(1.05); }
 
 /* Page Transitions */
 .page-enter-active, .page-leave-active { transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
