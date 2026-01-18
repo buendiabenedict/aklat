@@ -1,218 +1,187 @@
 <template>
-  <div class="fixed inset-0 bg-black text-white font-ios flex overflow-hidden w-full h-full">
+  <div class="min-h-screen bg-black text-white font-ios selection:bg-white/20 overflow-x-hidden pb-40">
     
-    <transition name="fade">
-      <div v-if="showWelcome" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
-        <p class="text-zinc-600 uppercase tracking-[0.6em] text-[10px] mb-4 animate-pulse">System Access Granted</p>
-        <h2 class="text-5xl font-bold tracking-tighter">Welcome, Admin</h2>
-      </div>
-    </transition>
-
-    <aside 
-      :class="[showWelcome ? 'opacity-5' : 'opacity-100']" 
-      class="w-72 h-full border-r border-white/10 bg-zinc-950 z-50 flex flex-col transition-all duration-700 shrink-0"
-    >
-      <div class="h-28 flex items-center px-8 overflow-hidden">
-        <div class="w-8 h-8 bg-white rounded-lg shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)]"></div>
-        <h1 class="ml-4 text-xs font-black tracking-widest uppercase text-white">Aklat Admin</h1>
-      </div>
-
-      <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
-        <button v-for="item in navItems" :key="item.name" @click="activeTab = item.id"
-          class="w-full flex items-center h-14 rounded-xl px-4 transition-all duration-200 relative"
-          :class="activeTab === item.id ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'">
-          <div class="w-6 h-6 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" :d="item.path" /></svg>
-          </div>
-          <span class="ml-4 font-bold text-sm tracking-tight">{{ item.name }}</span>
-          
-          <span v-if="item.id === 'notifications' && notifications.length > 0" class="absolute right-4 w-5 h-5 bg-red-600 text-white text-[10px] rounded-full flex items-center justify-center animate-bounce">
-            {{ notifications.length }}
-          </span>
-        </button>
-      </nav>
-
-      <div class="p-6 border-t border-white/5 space-y-4">
-        <div class="flex items-center gap-3 px-2">
-          <div class="relative flex h-2 w-2">
-            <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-            <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
-          </div>
-          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
+    <header class="p-6 flex justify-between items-center relative z-20">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.744c0 5.548 4.075 10.14 9 10.856 4.925-.716 9-5.308 9-10.856 0-1.31-.21-2.57-.598-3.744A11.959 11.959 0 0112 2.714z" />
+          </svg>
         </div>
-        <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all active:scale-95">
-          <span class="font-bold text-xs uppercase tracking-widest">Sign Out</span>
-        </button>
+        <h1 class="text-lg font-bold tracking-tighter italic uppercase">Admin Central</h1>
       </div>
-    </aside>
+      <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
+        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+        <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">Root Access</span>
+      </div>
+    </header>
 
-    <main 
-      :class="[showWelcome ? 'opacity-5' : 'opacity-100']"
-      class="flex-1 h-full overflow-y-auto p-8 md:p-16 relative z-10 bg-black"
-    >
-      <header class="mb-16 flex justify-between items-start">
-        <transition name="fade" mode="out-in">
-          <div :key="activeTab">
-            <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">{{ currentTime }} • Secure Terminal</p>
-            <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab.replace('_', ' ') }}</h2>
-          </div>
-        </transition>
-      </header>
-
+    <main class="max-w-5xl mx-auto px-6 relative z-10">
       <transition name="page" mode="out-in">
-        <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div v-for="stat in stats" :key="stat.label" class="p-8 border border-white/10 rounded-2xl bg-zinc-950 transition-all hover:border-white/20">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4" :class="stat.color">{{ stat.label }}</h3>
-            <p class="text-4xl font-bold tracking-tighter">{{ stat.value }}</p>
+        
+        <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 py-4 text-left">
+          <section>
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Overview</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Dashboard</h2>
+          </section>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+              <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total Assets</p>
+              <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
+            </div>
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+              <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
+              <p class="text-3xl font-bold tracking-tighter text-blue-500">{{ borrowers.length }}</p>
+            </div>
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl col-span-2">
+              <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Pending Requests</p>
+              <p class="text-3xl font-bold tracking-tighter text-amber-500">{{ pendingRequests.length }}</p>
+            </div>
           </div>
         </div>
 
-        <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-6">
-          <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests.</div>
-          <transition-group name="list">
-            <div v-for="notif in notifications" :key="notif.id" class="p-8 border border-white/20 rounded-3xl bg-zinc-950 flex justify-between items-center mb-6">
-              <div class="flex gap-6 items-center">
-                <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-xl font-bold">{{ notif.userEmail[0].toUpperCase() }}</div>
-                <div>
-                  <p class="text-2xl font-bold tracking-tight"><span class="text-zinc-500 font-normal">{{ notif.userEmail }}</span> requested <span class="text-white italic">"{{ notif.bookTitle }}"</span></p>
-                  <p class="text-xs text-zinc-600 uppercase mt-2 tracking-widest">Sent: {{ formatTimestamp(notif.createdAt) }}</p>
-                </div>
-              </div>
-              <div class="flex gap-4">
-                <button @click="handleAction(notif, 'approved')" class="px-8 py-3 bg-white text-black text-xs font-black uppercase rounded-xl hover:scale-105 transition-all">Approve</button>
-                <button @click="handleAction(notif, 'rejected')" class="px-8 py-3 border border-white/10 text-xs font-black uppercase rounded-xl hover:bg-red-500/10 transition-all">Decline</button>
-              </div>
+        <div v-else-if="activeTab === 'inventory'" key="inventory" class="py-4 text-left">
+          <section class="mb-6 flex justify-between items-end">
+            <div>
+              <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Repository</p>
+              <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Inventory</h2>
             </div>
-          </transition-group>
-        </section>
-
-        <section v-else-if="activeTab === 'borrowed'" :key="'borrowed'" class="space-y-6">
-          <div v-if="borrowers.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No active loans.</div>
-          <transition-group name="list">
-            <div v-for="item in borrowers" :key="item.id" class="p-8 border border-blue-500/10 rounded-3xl bg-zinc-950 flex justify-between items-center mb-6">
-              <div class="flex items-center gap-6">
-                <div class="w-16 h-16 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center text-3xl">📖</div>
-                <div>
-                  <p class="text-2xl font-bold tracking-tight text-white">{{ item.bookTitle }}</p>
-                  <p class="text-sm text-zinc-400 mt-1">Held by: <span class="text-blue-400 font-medium">{{ item.userEmail }}</span></p>
-                  <p class="text-[10px] text-zinc-600 uppercase mt-2 tracking-widest">Approved: {{ formatTimestamp(item.approvedAt) }}</p>
-                </div>
+            <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            </button>
+          </section>
+          
+          <div class="space-y-2">
+            <div v-for="book in books" :key="book.id" class="bg-zinc-950 border border-white/5 p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold tracking-tight uppercase italic leading-none">{{ book.title }}</h3>
+                <p class="text-[8px] text-zinc-600 uppercase mt-1 tracking-widest">ID: {{ book.id.slice(0,8) }}</p>
               </div>
-              <button @click="handleReturn(item)" class="px-8 py-4 bg-blue-600 text-white text-xs font-black uppercase rounded-xl hover:bg-blue-500 active:scale-95 transition-all">Mark as Returned</button>
+              <button @click="deleteBook(book.id)" class="p-2 text-zinc-800 hover:text-red-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              </button>
             </div>
-          </transition-group>
-        </section>
+          </div>
+        </div>
 
-        <section v-else-if="activeTab === 'history'" :key="'history'" class="space-y-4">
-          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">Logs are empty.</div>
-          <transition-group name="list">
-            <div v-for="log in history" :key="log.id" class="p-8 border border-white/5 rounded-3xl bg-zinc-950/50 flex justify-between items-center mb-4 transition-all hover:border-white/20">
-              <div class="flex items-center gap-6">
-                <div :class="log.status === 'returned' ? 'bg-green-500/20' : 'bg-red-500/20'" class="w-3 h-12 rounded-full"></div>
-                <div>
-                  <p class="text-xl font-bold text-zinc-200 tracking-tight">{{ log.bookTitle }}</p>
-                  <p class="text-sm text-zinc-500">{{ log.userEmail }}</p>
-                  <div class="flex gap-4 mt-3">
-                    <p class="text-[10px] text-zinc-600 uppercase tracking-tighter">Status: <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="font-bold">{{ log.status }}</span></p>
-                    <p class="text-[10px] text-zinc-600 uppercase tracking-tighter">Timestamp: {{ formatTimestamp(log.actionDate) }}</p>
-                  </div>
-                </div>
+        <div v-else-if="activeTab === 'requests'" key="requests" class="py-10 text-left">
+          <section class="mb-6">
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Queue</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Requests</h2>
+          </section>
+
+          <div v-if="pendingRequests.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
+            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">Clear Queue</p>
+          </div>
+
+          <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-950 border border-white/10 p-6 rounded-3xl mb-4">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-lg font-bold tracking-tighter uppercase leading-none">{{ req.bookTitle }}</h3>
+                <p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-1">{{ req.userEmail }}</p>
               </div>
-              <div class="text-right">
-                <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-[10px] font-black uppercase border border-current px-4 py-1.5 rounded-full opacity-50">{{ log.status }}</span>
-              </div>
+              <span class="text-[8px] font-mono text-zinc-700">{{ formatTimestamp(req.createdAt) }}</span>
             </div>
-          </transition-group>
-        </section>
-
-        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
-          <div class="flex flex-col md:flex-row gap-4 mb-8">
-            <input v-model="searchQuery" type="text" placeholder="Filter library..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none focus:border-white/30 transition-all" />
-            
             <div class="flex gap-2">
-              <button @click="toggleSelectMode" :class="isSelectMode ? 'bg-zinc-800 text-white' : 'bg-white/5 text-zinc-400'" class="px-6 py-4 rounded-xl font-bold border border-white/5 transition-all text-xs uppercase tracking-widest">
-                {{ isSelectMode ? 'Cancel' : 'Select' }}
-              </button>
-              
-              <button v-if="!isSelectMode" @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">
-                Add Books
-              </button>
-
-              <button v-else @click="confirmBulkDelete" :disabled="selectedBooks.length === 0" :class="selectedBooks.length > 0 ? 'bg-red-600' : 'bg-red-900/50 opacity-50'" class="text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">
-                Delete ({{ selectedBooks.length }})
-              </button>
+              <button @click="approveRequest(req)" class="flex-1 py-3 bg-white text-black rounded-xl font-black text-[9px] uppercase tracking-widest">Approve</button>
+              <button @click="declineRequest(req.id)" class="flex-1 py-3 bg-zinc-900 text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest border border-red-500/10">Decline</button>
             </div>
           </div>
+        </div>
 
-          <div class="border border-white/10 rounded-3xl overflow-hidden bg-zinc-950">
-            <table class="w-full text-left">
-              <transition-group tag="tbody" name="list" class="divide-y divide-white/[0.03]">
-                <tr v-for="book in filteredBooks" :key="book.id" 
-                    @click="isSelectMode ? toggleBookSelection(book.id) : null"
-                    :class="[isSelectMode ? 'cursor-pointer' : '', selectedBooks.includes(book.id) ? 'bg-white/[0.05]' : '']"
-                    class="hover:bg-white/[0.02] group">
-                  <td v-if="isSelectMode" class="pl-8 w-10">
-                    <div :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : 'border-white/20'" class="w-5 h-5 rounded-full border-2 transition-all"></div>
-                  </td>
-                  <td class="p-8 text-lg font-medium tracking-tight">{{ book.title }}</td>
-                  <td class="p-8 text-right">
-                    <button v-if="!isSelectMode" @click.stop="confirmSingleDelete(book)" class="text-red-500/50 hover:text-red-500 text-[10px] font-black uppercase opacity-0 group-hover:opacity-100 transition-all">Remove</button>
-                  </td>
-                </tr>
-              </transition-group>
-            </table>
+        <div v-else-if="activeTab === 'borrowers'" key="borrowers" class="py-10 text-left">
+          <section class="mb-6">
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Live Assets</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Borrowers</h2>
+          </section>
+
+          <div v-for="person in borrowers" :key="person.id" class="bg-white text-black p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] border-blue-600">
+            <div>
+              <h3 class="text-sm font-black uppercase tracking-tighter leading-none">{{ person.bookTitle }}</h3>
+              <p class="text-[9px] font-bold text-zinc-400 uppercase mt-1">{{ person.userEmail }}</p>
+            </div>
+            <button @click="markAsReturned(person)" class="px-4 py-2 bg-black text-white rounded-lg text-[8px] font-black uppercase tracking-widest">Returned</button>
           </div>
-        </section>
+        </div>
+
+        <div v-else-if="activeTab === 'logs'" key="logs" class="py-10 text-left">
+          <section class="mb-6">
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">History</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">System Logs</h2>
+          </section>
+          
+          <div class="space-y-2">
+            <div v-for="log in allLogs" :key="log.id" class="p-4 bg-zinc-950 border border-white/5 rounded-xl flex justify-between items-center">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-tight">{{ log.bookTitle }}</p>
+                <p class="text-[8px] font-black tracking-widest uppercase mt-0.5" :class="log.status === 'approved' ? 'text-green-500' : 'text-red-500'">{{ log.status }}</p>
+              </div>
+              <p class="text-[8px] font-mono text-zinc-800">{{ log.userEmail }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="activeTab === 'profile'" key="profile" class="py-10 text-center">
+          <section class="text-left mb-10">
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Admin Profile</h2>
+          </section>
+
+          <div class="w-24 h-24 bg-blue-600 border border-blue-400 mx-auto rounded-[2.5rem] flex items-center justify-center text-3xl font-black mb-4 shadow-2xl">A</div>
+          <h2 class="text-2xl font-bold tracking-tighter uppercase italic">{{ auth.currentUser?.email }}</h2>
+          <p class="text-blue-500 text-[9px] font-bold uppercase tracking-[0.4em] mt-2 italic">System Administrator</p>
+          
+          <div class="max-w-xs mx-auto pt-20">
+            <button @click="showLogoutModal = true" class="w-full py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 active:bg-red-600 active:text-white transition-all">Sign Out Admin Session</button>
+          </div>
+        </div>
+
       </transition>
     </main>
 
-    <transition name="fade">
-      <div v-if="showAddBookModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-md">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xl w-full">
-          <div class="flex justify-between items-start mb-6">
-            <div>
-              <h3 class="text-3xl font-bold tracking-tighter italic text-white">Add Entries</h3>
-              <p class="text-zinc-500 text-sm mt-1">Tip: Use commas to add multiple books at once.</p>
-            </div>
-            <button @click="showAddBookModal = false" class="text-zinc-500 hover:text-white">✕</button>
-          </div>
-          
-          <textarea 
-            v-model="newBookBatch" 
-            placeholder="Example: Noli Me Tangere, El Filibusterismo, Harry Potter..." 
-            class="w-full h-48 bg-zinc-900 border border-white/10 rounded-2xl py-6 px-6 text-white mb-8 outline-none focus:border-white/30 resize-none text-lg font-medium"
-          ></textarea>
+    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] px-2">
+      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-between shadow-2xl">
+        <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
+        </button>
+        <button @click="activeTab = 'inventory'" :class="activeTab === 'inventory' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+        </button>
+        <button @click="activeTab = 'requests'" :class="activeTab === 'requests' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all relative">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+          <div v-if="pendingRequests.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[8px] font-black text-black border-2 border-black">{{ pendingRequests.length }}</div>
+        </button>
+        <button @click="activeTab = 'borrowers'" :class="activeTab === 'borrowers' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+        </button>
+        <button @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </button>
+        <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 rounded-full flex items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        </button>
+      </nav>
+    </div>
 
-          <div class="flex gap-3">
-            <button @click="showAddBookModal = false" class="flex-1 py-5 rounded-2xl border border-white/10 font-bold text-zinc-400">Cancel</button>
-            <button @click="addBooksBatch" :disabled="!newBookBatch.trim()" class="flex-1 py-5 rounded-2xl bg-white text-black font-black active:scale-95 disabled:opacity-30 transition-all">
-              Confirm Add
-            </button>
-          </div>
+    <transition name="fade">
+      <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+        <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
+          <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase italic apple-gradient text-center">New Asset</h2>
+          <input v-model="newBookTitle" type="text" placeholder="Entry Title" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4" />
+          <button @click="addBook" :disabled="!newBookTitle" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Initialize Entry</button>
+          <button @click="showAddModal = false" class="w-full py-4 text-zinc-600 font-bold uppercase text-[9px] mt-1">Cancel</button>
         </div>
       </div>
     </transition>
 
     <transition name="fade">
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 px-6 backdrop-blur-md">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Are you sure?</h3>
-          <p class="text-zinc-500 text-sm mb-8">Deleting {{ deleteTargetCount }} items permanently.</p>
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
+          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter italic leading-none">Terminate?</h3>
           <div class="flex gap-3">
-            <button @click="closeDeleteModal" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
-            <button @click="executeDeletion" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black">Delete</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-6 tracking-tighter text-white">Sign Out?</h3>
-          <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-zinc-400">Cancel</button>
-            <button @click="executeLogout" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black">Logout</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
+            <button @click="executeLogout" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Yes</button>
           </div>
         </div>
       </div>
@@ -222,146 +191,84 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, defineEmits } from 'vue';
+import { ref, onMounted, computed, defineEmits } from 'vue';
 import { db, auth } from './lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
 const emit = defineEmits(['logout']);
 
-// State
+const activeTab = ref('dashboard');
 const books = ref([]);
 const notifications = ref([]);
 const borrowers = ref([]);
-const history = ref([]);
-const activeTab = ref('home');
-const showWelcome = ref(true);
-const showAddBookModal = ref(false);
+const showAddModal = ref(false);
 const showLogoutModal = ref(false);
-const showDeleteModal = ref(false);
+const newBookTitle = ref('');
 
-const isSelectMode = ref(false);
-const selectedBooks = ref([]);
-const singleDeleteId = ref(null);
+onMounted(() => {
+  onSnapshot(collection(db, "books"), (s) => {
+    books.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  });
+  onSnapshot(collection(db, "notifications"), (s) => {
+    notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  });
+  onSnapshot(collection(db, "borrowers"), (s) => {
+    borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  });
+});
 
-const newBookBatch = ref('');
-const searchQuery = ref('');
-const currentTime = ref('');
-const dbStatus = ref('online');
+const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
+const allLogs = computed(() => notifications.value.filter(r => r.status !== 'pending').sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
 
-const navItems = [
-  { id: 'home', name: 'Dashboard', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { id: 'inventory', name: 'Inventory', path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-  { id: 'notifications', name: 'Requests', path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-  { id: 'borrowed', name: 'Borrowers', path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197' },
-  { id: 'history', name: 'Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
-];
+const formatTimestamp = (ts) => ts ? new Date(ts.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
 
-// Batch Add Logic
-const addBooksBatch = async () => {
-  const titles = newBookBatch.value.split(',').map(t => t.trim()).filter(t => t !== "");
-  if (titles.length === 0) return;
-
-  try {
-    const batch = writeBatch(db);
-    titles.forEach(title => {
-      const newDocRef = doc(collection(db, "books"));
-      batch.set(newDocRef, { 
-        title, 
-        createdAt: serverTimestamp() 
-      });
-    });
-    await batch.commit();
-    newBookBatch.value = '';
-    showAddBookModal.value = false;
-  } catch (err) { console.error("Batch add failed:", err); }
+const addBook = async () => {
+  if (!newBookTitle.value) return;
+  await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() });
+  newBookTitle.value = '';
+  showAddModal.value = false;
 };
 
-// Selection & Delete Handlers
-const toggleSelectMode = () => { isSelectMode.value = !isSelectMode.value; selectedBooks.value = []; };
-const toggleBookSelection = (id) => {
-  const index = selectedBooks.value.indexOf(id);
-  if (index > -1) selectedBooks.value.splice(index, 1);
-  else selectedBooks.value.push(id);
-};
-const confirmSingleDelete = (book) => { singleDeleteId.value = book.id; showDeleteModal.value = true; };
-const confirmBulkDelete = () => { showDeleteModal.value = true; };
-const closeDeleteModal = () => { showDeleteModal.value = false; singleDeleteId.value = null; };
-const deleteTargetCount = computed(() => singleDeleteId.value ? 1 : selectedBooks.length);
-const executeDeletion = async () => {
-  try {
-    if (singleDeleteId.value) await deleteDoc(doc(db, "books", singleDeleteId.value));
-    else {
-      const batch = writeBatch(db);
-      selectedBooks.value.forEach(id => batch.delete(doc(db, "books", id)));
-      await batch.commit();
-    }
-    isSelectMode.value = false;
-    selectedBooks.value = [];
-    closeDeleteModal();
-  } catch (err) { console.error(err); }
+const deleteBook = async (id) => {
+  if (confirm('Delete asset?')) await deleteDoc(doc(db, "books", id));
 };
 
-// Global Data
-const stats = computed(() => [
-  { label: 'Total Books', value: books.value.length, color: '' },
-  { label: 'Requests', value: notifications.value.length, color: 'text-red-500' },
-  { label: 'Active Loans', value: borrowers.value.length, color: 'text-blue-500' },
-  { label: 'Logs', value: history.value.length, color: 'text-zinc-500' }
-]);
-
-const formatTimestamp = (ts) => {
-  if (!ts) return 'Processing...';
-  const date = ts.toDate ? ts.toDate() : new Date(ts);
-  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const approveRequest = async (req) => {
+  // 1. Update notification status
+  await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
+  // 2. Add to borrowers collection
+  await addDoc(collection(db, "borrowers"), {
+    ...req,
+    status: 'approved',
+    approvedAt: serverTimestamp()
+  });
 };
 
-const executeLogout = async () => { try { if (auth) await signOut(auth); emit('logout'); } catch (e) { emit('logout'); } };
-
-const loadData = () => {
-  onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(collection(db, "notifications"), (s) => notifications.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
-    history.value = s.docs.map(d => ({id: d.id, ...d.data()}));
-    dbStatus.value = 'online';
-  }, () => dbStatus.value = 'offline');
+const declineRequest = async (id) => {
+  await updateDoc(doc(db, "notifications", id), { status: 'declined' });
 };
 
-const handleAction = async (notif, status) => {
-  const data = { ...notif, status, actionDate: serverTimestamp() };
-  delete data.id;
-  try {
-    if (status === 'approved') { data.approvedAt = serverTimestamp(); await addDoc(collection(db, "borrowers"), data); }
-    else await addDoc(collection(db, "history"), data);
-    await deleteDoc(doc(db, "notifications", notif.id));
-  } catch (err) { console.error(err); }
+const markAsReturned = async (person) => {
+  // Tanggalin sa borrowers list pero iwan sa logs (notifications)
+  await deleteDoc(doc(db, "borrowers", person.id));
 };
 
-const handleReturn = async (borrower) => {
-  const data = { ...borrower, status: 'returned', actionDate: serverTimestamp() };
-  delete data.id;
-  try {
-    await addDoc(collection(db, "history"), data);
-    await deleteDoc(doc(db, "borrowers", borrower.id));
-  } catch (err) { console.error(err); }
+const executeLogout = async () => {
+  await signOut(auth);
+  emit('logout');
 };
-
-const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase().includes(searchQuery.value.toLowerCase())));
-const updateTime = () => { currentTime.value = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' }); };
-
-let timer;
-onMounted(() => { loadData(); updateTime(); timer = setInterval(updateTime, 1000); setTimeout(() => showWelcome.value = false, 2500); });
-onUnmounted(() => clearInterval(timer));
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.apple-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #444444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
+.page-enter-from, .page-leave-to { opacity: 0; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-.page-enter-active, .page-leave-active { transition: all 0.4s ease; }
-.page-enter-from { opacity: 0; transform: translateY(10px); }
-.page-leave-to { opacity: 0; transform: translateY(-10px); }
-.list-enter-active, .list-leave-active { transition: all 0.5s ease; }
-.list-enter-from { opacity: 0; transform: translateX(-20px); }
-.list-leave-to { opacity: 0; transform: translateX(20px); }
+::-webkit-scrollbar { display: none; }
 </style>
