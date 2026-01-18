@@ -206,6 +206,8 @@ onMounted(() => {
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      // Delay to allow fade out to be visible if desired, 
+      // but here we let the mode="out-in" handle the switch smoothly
       currentView.value = user.email.toLowerCase().includes('admin') ? 'admin' : 'user';
     } else {
       currentView.value = null;
@@ -273,6 +275,22 @@ onMounted(() => {
 .form-morph-enter-active, .form-morph-leave-active { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
 .form-morph-enter-from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(10px); }
 .form-morph-leave-to { opacity: 0; transform: translateY(-20px) scale(0.98); filter: blur(10px); }
+
+/* PAGE SWAP (AUTH TO DASHBOARD) - This handles the smooth fade out */
+.page-swap-enter-active {
+  transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.page-swap-leave-active {
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.page-swap-enter-from {
+  opacity: 0;
+}
+.page-swap-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+  filter: blur(15px);
+}
 
 @keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .animate-reveal { opacity: 0; animation: reveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
