@@ -91,7 +91,6 @@
               <div>
                 <h3 class="text-lg font-bold tracking-tighter uppercase leading-none">{{ req.bookTitle }}</h3>
                 <p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-1">{{ req.userEmail }}</p>
-                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Return Date: {{ req.returnDate }}</p>
               </div>
             </div>
             <div class="flex gap-2">
@@ -107,22 +106,22 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
           <div v-for="person in borrowers" :key="person.id" 
-               :class="isOverdue(person.returnDate) ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
-               class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-colors duration-500">
+               :class="getRemainingMs(person.returnDate) <= 0 ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
+               class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-all duration-500">
             <div class="max-w-[60%]">
               <h3 class="text-sm font-black uppercase tracking-tighter leading-none truncate">{{ person.bookTitle }}</h3>
-              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="isOverdue(person.returnDate) ? 'text-red-200' : 'text-zinc-500'">
+              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="getRemainingMs(person.returnDate) <= 0 ? 'text-white/70' : 'text-zinc-500'">
                 {{ person.userEmail }}
               </p>
               <div class="mt-2 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="isOverdue(person.returnDate) ? 'bg-white' : 'bg-blue-600'"></span>
+                <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="getRemainingMs(person.returnDate) <= 0 ? 'bg-white' : 'bg-blue-600'"></span>
                 <span class="text-[10px] font-black font-mono tracking-tighter">
-                  {{ getCountdown(person.returnDate, timerRef) }}
+                  {{ formatCountdown(person.returnDate) }}
                 </span>
               </div>
             </div>
             <button @click="markAsReturned(person)" 
-                    :class="isOverdue(person.returnDate) ? 'bg-white text-red-600' : 'bg-black text-white'"
+                    :class="getRemainingMs(person.returnDate) <= 0 ? 'bg-white text-red-600' : 'bg-black text-white'"
                     class="px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
               Returned
             </button>
@@ -189,7 +188,7 @@
             <span class="text-[8px] font-black text-white leading-none">{{ pendingRequests.length }}</span>
           </div>
 
-          <div v-if="tab === 'borrowers' && hasOverdue" class="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border border-black animate-pulse z-10 shadow-[0_0_10px_rgba(220,38,38,0.8)]"></div>
+          <div v-if="tab === 'borrowers' && hasOverdue" class="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border border-black animate-pulse z-10"></div>
 
           <svg v-if="tab === 'dashboard'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
           <svg v-if="tab === 'inventory'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
@@ -248,50 +247,47 @@ const showLogoutModal = ref(false);
 const batchTitleInput = ref('');
 const currentTime = ref('');
 
-// 12-Hour Clock
+// Reactive clock and global timer
+const timerRef = ref(Date.now());
 let clockInterval;
+
 const updateClock = () => {
   const now = new Date();
+  timerRef.value = now.getTime();
   currentTime.value = now.toLocaleTimeString('en-US', { 
     hour12: true, hour: '2-digit', minute: '2-digit' 
   });
 };
 
-// Global Timer Ref
-const timerRef = ref(Date.now());
-let countdownInterval;
-
-// OVERDUE DETECTION LOGIC
-const isOverdue = (returnDateString) => {
-  if (!returnDateString) return false;
-  return new Date(returnDateString).getTime() < timerRef.value;
+// 🛠️ REVISED DYNAMIC LOGIC
+const getRemainingMs = (returnDateString) => {
+  if (!returnDateString) return 0;
+  const target = new Date(returnDateString).getTime();
+  if (isNaN(target)) return 0;
+  return target - timerRef.value;
 };
 
-// COMPUTED: Check if any active loan is overdue for the nav badge
+const formatCountdown = (returnDateString) => {
+  const diff = getRemainingMs(returnDateString);
+  
+  if (diff <= 0) return "DUE NOW / OVERDUE";
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  return `${days}d : ${hours.toString().padStart(2, '0')}h : ${minutes.toString().padStart(2, '0')}m : ${seconds.toString().padStart(2, '0')}s`;
+};
+
+// Nav Badge Logic
 const hasOverdue = computed(() => {
-  return borrowers.value.some(p => isOverdue(p.returnDate));
+  return borrowers.value.some(p => getRemainingMs(p.returnDate) <= 0);
 });
-
-const getCountdown = (returnDateString, trigger) => {
-  if (!returnDateString) return "00:00:00:00";
-  const dummy = trigger; // reactivity trigger
-  const targetDate = new Date(returnDateString).getTime();
-  const diff = targetDate - timerRef.value;
-
-  if (diff <= 0) return "EXPIRED / OVERDUE";
-
-  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-  return `${d.toString().padStart(2, '0')}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
-};
 
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
-  countdownInterval = setInterval(() => { timerRef.value = Date.now(); }, 1000);
 
   onSnapshot(collection(db, "books"), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -302,7 +298,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(clockInterval);
-  clearInterval(countdownInterval);
 });
 
 const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
