@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden text-left">
+  <div class="h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-hidden text-left">
     
     <!-- WELCOME SEQUENCE -->
     <transition name="welcome-fade" @after-leave="onWelcomeFinished">
@@ -13,9 +13,9 @@
     </transition>
 
     <!-- UI LAYER (Only shows after welcome fade) -->
-    <div v-if="contentVisible" class="animate-content-in relative min-h-screen pb-32">
-      <!-- Top Header -->
-      <header class="p-6 flex justify-between items-center relative z-20">
+    <div v-if="contentVisible" class="animate-content-in relative h-screen flex flex-col">
+      <!-- Top Header (Fixed Overlay) -->
+      <header class="fixed top-0 left-0 right-0 p-6 flex justify-between items-center z-[100] bg-zinc-950/20 backdrop-blur-xl border-b border-white/5">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-zinc-900 border border-white/10 rounded-lg flex items-center justify-center text-white font-black text-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -49,7 +49,9 @@
         </div>
       </header>
 
-      <main class="max-w-5xl mx-auto px-6 relative z-10">
+      <!-- Scrollable Content Area -->
+      <main class="flex-1 overflow-y-auto pt-24 pb-32 px-6 scrollbar-hide">
+        <div class="max-w-5xl mx-auto relative z-10">
         <transition name="page" mode="out-in">
           
           <!-- DASHBOARD TAB -->
@@ -262,24 +264,28 @@
             </transition-group>
           </div>
 
+          </div>
+
         </transition>
       </main>
 
-      <!-- NAVIGATION BAR (Fixed Overlay) -->
-      <div class="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
-        <nav class="bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[400px] pointer-events-auto">
+      <!-- NAVIGATION BAR (Floating Overlay) -->
+      <div class="fixed bottom-8 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none">
+        <nav class="bg-zinc-900/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-2 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[440px] pointer-events-auto">
           <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" :key="tab" @click="activeTab = tab" 
-                  :class="activeTab === tab ? 'bg-white text-black scale-95' : 'text-zinc-500 hover:text-zinc-300'" 
-                  class="w-10 h-10 rounded-full flex items-center justify-center transition-all relative">
+                  :class="activeTab === tab ? 'bg-white text-black scale-95 shadow-lg' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'" 
+                  class="w-10 h-10 rounded-xl flex items-center justify-center transition-all relative group">
             
             <svg v-if="tab === 'dashboard'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             <svg v-if="tab === 'inventory'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             <svg v-if="tab === 'requests'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             <svg v-if="tab === 'borrowers'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
             <svg v-if="tab === 'community'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
-            <svg v-if="tab === 'logs'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg v-if="tab === 'logs'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             
-            <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-white text-black rounded-full flex items-center justify-center text-[8px] font-black">
+            <span class="text-[7px] font-black uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-4">{{ tab }}</span>
+
+            <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-white text-black rounded-full flex items-center justify-center text-[8px] font-black shadow-lg">
               {{ pendingRequests.length }}
             </div>
           </button>
@@ -492,4 +498,6 @@ const clearLogs = async () => {
 .list-enter-from { opacity: 0; transform: translateY(10px); }
 .list-leave-to { opacity: 0; transform: scale(0.95); }
 .list-move { transition: transform 0.4s ease; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
