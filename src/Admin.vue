@@ -16,8 +16,8 @@
     <div v-if="contentVisible" class="animate-content-in relative min-h-screen">
       
       <!-- NAVIGATION BAR (Fixed Floating Overlay) -->
-      <!-- Nilagay natin ito sa taas para laging visible at hindi kailangang i-scroll -->
-      <div class="fixed bottom-10 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none">
+      <!-- 'fixed' handles the overlay behavior so it stays on top of all pages regardless of scroll -->
+      <div class="fixed bottom-8 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none">
         <nav class="bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] w-full max-w-md pointer-events-auto">
           <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" 
                   :key="tab" @click="activeTab = tab" 
