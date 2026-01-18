@@ -200,6 +200,24 @@
     </div>
 
     <transition name="fade">
+      <div v-if="showReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+        <div v-if="targetBorrower" class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
+          <div class="w-16 h-16 bg-blue-600/20 text-blue-500 mx-auto rounded-full flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+          </div>
+          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Mark Returned?</h3>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">
+            Record return for "{{ targetBorrower.bookTitle }}" by {{ targetBorrower.userEmail }}.
+          </p>
+          <div class="flex gap-3">
+            <button @click="showReturnModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
+            <button @click="executeReturn" class="flex-1 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase">Yes</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
           <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">Batch Initialize</h2>
@@ -217,28 +235,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </div>
           <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Purge Data?</h3>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">You are about to delete {{ selectedBooks.length }} selected items from the repository.</p>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">You are about to delete {{ selectedBooks.length }} selected items.</p>
           <div class="flex gap-3">
             <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">Abort</button>
             <button @click="deleteSelectedBooks" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Confirm</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="showReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
-        <div v-if="targetBorrower" class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <div class="w-16 h-16 bg-blue-600/20 text-blue-500 mx-auto rounded-full flex items-center justify-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-          </div>
-          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Mark Returned?</h3>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">
-            Record return for "{{ targetBorrower.bookTitle }}" by {{ targetBorrower.userEmail }}.
-          </p>
-          <div class="flex gap-3">
-            <button @click="showReturnModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
-            <button @click="executeReturn" class="flex-1 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase">Yes</button>
           </div>
         </div>
       </div>
@@ -291,18 +291,14 @@ let clockInterval;
 const updateClock = () => {
   const now = new Date();
   timerRef.value = now.getTime();
-  currentTime.value = now.toLocaleTimeString('en-US', { 
-    hour12: true, hour: '2-digit', minute: '2-digit' 
-  });
+  currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
 };
 
 const getRemainingMs = (schedule) => {
   if (!schedule) return 0;
-  const fixedDate = schedule.replace(/-/g, '/');
-  const target = new Date(fixedDate);
-  target.setHours(23, 59, 59, 999); 
-  const targetMs = target.getTime();
-  return isNaN(targetMs) ? 0 : targetMs - timerRef.value;
+  const target = new Date(schedule.replace(/-/g, '/'));
+  target.setHours(23, 59, 59, 999);
+  return target.getTime() - timerRef.value;
 };
 
 const formatCountdown = (schedule) => {
@@ -315,9 +311,7 @@ const formatCountdown = (schedule) => {
   return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
 };
 
-const hasOverdue = computed(() => {
-  return borrowers.value.some(p => getRemainingMs(p.returnSchedule) <= 0);
-});
+const hasOverdue = computed(() => borrowers.value.some(p => getRemainingMs(p.returnSchedule) <= 0));
 
 onMounted(() => {
   updateClock();
@@ -330,9 +324,7 @@ onMounted(() => {
   onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
 });
 
-onUnmounted(() => {
-  clearInterval(clockInterval);
-});
+onUnmounted(() => clearInterval(clockInterval));
 
 const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
 
@@ -356,8 +348,8 @@ const batchAddBooks = async () => {
 };
 
 const toggleSelectBook = (id) => {
-  const index = selectedBooks.value.indexOf(id);
-  if (index > -1) selectedBooks.value.splice(index, 1);
+  const idx = selectedBooks.value.indexOf(id);
+  if (idx > -1) selectedBooks.value.splice(idx, 1);
   else selectedBooks.value.push(id);
 };
 
@@ -369,25 +361,41 @@ const deleteSelectedBooks = async () => {
   showDeleteModal.value = false;
 };
 
+// 🛠️ FIXED APPROVE: SIGURADONG LILITAW SA BORROWERS PAGE
 const approveRequest = async (req) => {
-  // Update original request
-  await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
-  
-  // Add to borrowers WITH THE ORIGINAL NOTIFICATION ID
-  await addDoc(collection(db, "borrowers"), { 
-    ...req,
-    originalRequestId: req.id, // VERY IMPORTANT: Ito ang link natin
-    returnSchedule: req.returnDate, 
-    status: 'approved', 
-    approvedAt: serverTimestamp() 
-  });
-  
-  await addDoc(collection(db, "history"), { 
-    bookTitle: req.bookTitle, 
-    userEmail: req.userEmail, 
-    status: 'approved', 
-    createdAt: serverTimestamp() 
-  });
+  try {
+    const batch = writeBatch(db);
+    
+    // 1. Update status ng request
+    const requestRef = doc(db, "notifications", req.id);
+    batch.update(requestRef, { status: 'approved' });
+
+    // 2. Add sa borrowers collection
+    const borrowerRef = doc(collection(db, "borrowers"));
+    batch.set(borrowerRef, {
+      bookTitle: req.bookTitle,
+      userEmail: req.userEmail,
+      userId: req.userId,
+      originalRequestId: req.id, // Para sa pag-return
+      returnSchedule: req.returnDate,
+      status: 'approved',
+      approvedAt: serverTimestamp()
+    });
+
+    // 3. Log sa history
+    const historyRef = doc(collection(db, "history"));
+    batch.set(historyRef, {
+      bookTitle: req.bookTitle,
+      userEmail: req.userEmail,
+      status: 'approved',
+      createdAt: serverTimestamp()
+    });
+
+    await batch.commit();
+    console.log("Approved and added to borrowers! ✅");
+  } catch (e) {
+    console.error("Approve error:", e);
+  }
 };
 
 const declineRequest = async (id) => {
@@ -396,67 +404,54 @@ const declineRequest = async (id) => {
   await addDoc(collection(db, "history"), { bookTitle: req?.bookTitle, userEmail: req?.userEmail, status: 'declined', createdAt: serverTimestamp() });
 };
 
-// 🛠️ THE AGGRESSIVE FIX: DELETE & SYNC
 const confirmReturn = (person) => {
   targetBorrower.value = person;
   showReturnModal.value = true;
 };
 
+// 🛠️ FIXED RETURN: SIGURADONG MATATANGGAL SA PAREHONG SIDES
 const executeReturn = async () => {
   if (!targetBorrower.value) return;
-  
   const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
 
   try {
     const batch = writeBatch(db);
 
-    // 1. Literal na tanggalin sa "borrowers" collection (Dapat mawala na sa Admin Borrowers Tab)
+    // 1. Tanggalin sa borrowers (Admin Side)
     batch.delete(doc(db, "borrowers", id));
 
-    // 2. I-archive ang original notification/request
-    // Kung walang originalRequestId, hahanapin natin via query para sigurado
+    // 2. I-archive ang original notification (User Side)
     if (originalRequestId) {
       batch.update(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
     } else {
-      // Emergency sync: hanapin ang approved notification para sa librong ito ng user na ito
+      // Backup sync if originalRequestId is missing
       const q = query(collection(db, "notifications"), 
                 where("userId", "==", userId), 
                 where("bookTitle", "==", bookTitle), 
                 where("status", "==", "approved"));
       const snapshot = await getDocs(q);
-      snapshot.forEach(d => {
-        batch.update(doc(db, "notifications", d.id), { status: 'returned_archive' });
-      });
+      snapshot.forEach(d => batch.update(doc(db, "notifications", d.id), { status: 'returned_archive' }));
     }
 
-    // 3. Mag-send ng Inbox Notification kay User
+    // 3. Bagong notification for User Inbox
     const newNotifRef = doc(collection(db, "notifications"));
     batch.set(newNotifRef, {
-      userId: userId,
-      bookTitle: bookTitle,
-      userEmail: userEmail,
+      userId, bookTitle, userEmail,
       message: "The librarian set your book to returned.",
       status: 'returned_by_admin',
       createdAt: serverTimestamp()
     });
 
-    // 4. Record sa System Logs
+    // 4. Log history
     const logRef = doc(collection(db, "history"));
-    batch.set(logRef, {
-      bookTitle,
-      userEmail,
-      status: 'returned',
-      createdAt: serverTimestamp()
-    });
+    batch.set(logRef, { bookTitle, userEmail, status: 'returned', createdAt: serverTimestamp() });
 
     await batch.commit();
-
     showReturnModal.value = false;
     targetBorrower.value = null;
-    
-    console.log("Success: Database Cleaned! 🧹");
-  } catch (error) {
-    console.error("Critical Error during Return:", error);
+    console.log("Returned successfully! 🧹");
+  } catch (e) {
+    console.error("Return error:", e);
   }
 };
 
@@ -467,11 +462,7 @@ const executeLogout = async () => {
 </script>
 
 <style scoped>
-.apple-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #444444 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+.apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
