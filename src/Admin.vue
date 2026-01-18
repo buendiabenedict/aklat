@@ -30,7 +30,7 @@
         <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 py-4">
           <section>
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none italic-none">Overview</h2>
           </section>
 
           <div class="grid grid-cols-2 gap-3">
@@ -160,19 +160,19 @@
     </main>
 
     <!-- COMPACT NAVIGATION BAR -->
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] px-6">
-      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-between shadow-2xl">
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[320px] px-6">
+      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl">
         <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'logs']" :key="tab" @click="activeTab = tab" 
-                :class="activeTab === tab ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-zinc-300'" 
-                class="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 relative">
+                :class="activeTab === tab ? 'bg-white text-black shadow-lg scale-95' : 'text-zinc-500 hover:text-zinc-300'" 
+                class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative">
           
-          <svg v-if="tab === 'dashboard'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-          <svg v-if="tab === 'inventory'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-          <svg v-if="tab === 'requests'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-          <svg v-if="tab === 'borrowers'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
-          <svg v-if="tab === 'logs'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <svg v-if="tab === 'dashboard'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          <svg v-if="tab === 'inventory'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <svg v-if="tab === 'requests'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          <svg v-if="tab === 'borrowers'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
+          <svg v-if="tab === 'logs'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           
-          <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 rounded-full border-2 border-black flex items-center justify-center text-[8px] font-black text-white animate-pulse">
+          <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-600 rounded-full border-2 border-black flex items-center justify-center text-[7px] font-black text-white">
             {{ pendingRequests.length }}
           </div>
         </button>
@@ -240,10 +240,10 @@ onMounted(() => {
     historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
   
-  // Sync Active Borrowers (CRITICAL: KINUKUHA ANG DOC ID PARA SA DELETE)
+  // FIXED SYNC: Sinisigurado na ang "id" na nakukuha ay ang Firestore Doc UID
   onSnapshot(collection(db, "borrowers"), (s) => {
     borrowers.value = s.docs.map(d => ({ 
-      id: d.id, // Ito ang kailangang Document ID para sa deleteDoc
+      id: d.id, // Ang UID ng document mismo (e.g. "xQXbgA8YBBiNkCjgveRg")
       ...d.data() 
     }));
   });
@@ -268,10 +268,9 @@ const deleteBook = async (id) => {
 };
 
 const approveRequest = async (req) => {
-  // Update the original request notification
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
   
-  // Move to live borrowers collection
+  // Kapag nag-approve, ang document ay mapupunta sa borrowers collection
   await addDoc(collection(db, "borrowers"), { 
     bookTitle: req.bookTitle,
     userId: req.userId,
@@ -282,7 +281,6 @@ const approveRequest = async (req) => {
     createdAt: serverTimestamp()
   });
   
-  // Log into history
   await addDoc(collection(db, "history"), { 
     bookTitle: req.bookTitle,
     userEmail: req.userEmail,
@@ -297,11 +295,11 @@ const declineRequest = async (id) => {
 
 /**
  * FIXED RETURN LOGIC:
- * Gumagamit ng person.id (Firestore Document ID) para sigurado ang pag-delete.
+ * Ginagamit ang person.id (Firestore Doc UID) para i-delete ang specific entry.
  */
 const markAsReturned = async (person) => {
   try {
-    // 1. Add record to History collection first
+    // 1. I-save muna sa history bago burahin
     await addDoc(collection(db, "history"), {
       bookTitle: person.bookTitle,
       userEmail: person.userEmail,
@@ -311,12 +309,12 @@ const markAsReturned = async (person) => {
       createdAt: serverTimestamp()
     });
 
-    // 2. Delete the record from Borrowers collection using the Firestore UID
+    // 2. Burahin ang specific record gamit ang Firestore Document ID
     await deleteDoc(doc(db, "borrowers", person.id));
     
-    console.log("Success: Asset removed and logged.");
+    console.log("Success: Record removed from borrowers page.");
   } catch (err) {
-    console.error("Return failed:", err);
+    console.error("Return operation failed:", err);
   }
 };
 
