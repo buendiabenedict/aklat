@@ -61,7 +61,7 @@
 
       <transition name="page" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div v-for="stat in stats" :key="stat.label" class="p-8 border border-white/10 rounded-2xl bg-zinc-950 transition-all hover:border-white/20">
+          <div v-for="stat in stats" :key="stat.label" class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
             <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4" :class="stat.color">{{ stat.label }}</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ stat.value }}</p>
           </div>
@@ -79,8 +79,8 @@
                 </div>
               </div>
               <div class="flex gap-3">
-                <button @click="handleAction(notif, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-lg active:scale-95 transition-all">Approve</button>
-                <button @click="handleAction(notif, 'rejected')" class="px-6 py-2 border border-white/10 text-[10px] font-black uppercase rounded-lg hover:bg-red-500/10 active:scale-95 transition-all">Decline</button>
+                <button @click="handleAction(notif, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-lg">Approve</button>
+                <button @click="handleAction(notif, 'rejected')" class="px-6 py-2 border border-white/10 text-[10px] font-black uppercase rounded-lg">Decline</button>
               </div>
             </div>
           </transition-group>
@@ -91,32 +91,29 @@
           <transition-group name="list">
             <div v-for="item in borrowers" :key="item.id" class="p-6 border border-blue-500/10 rounded-2xl bg-zinc-950 flex justify-between items-center mb-4">
               <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-lg flex items-center justify-center">📖</div>
+                <div class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-lg flex items-center justify-center font-bold">📖</div>
                 <div>
                   <p class="text-sm font-bold">{{ item.bookTitle }}</p>
-                  <p class="text-[9px] text-zinc-500 uppercase">Borrowed by {{ item.userEmail }} on {{ formatTimestamp(item.approvedAt) }}</p>
+                  <p class="text-[9px] text-zinc-500 uppercase">On loan to {{ item.userEmail }}</p>
                 </div>
               </div>
-              <button @click="handleReturn(item)" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-blue-500 active:scale-95 transition-all">Mark as Returned</button>
+              <button @click="handleReturn(item)" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-blue-500">Mark as Returned</button>
             </div>
           </transition-group>
         </section>
 
         <section v-else-if="activeTab === 'history'" :key="'history'" class="space-y-4">
-          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">History is clear.</div>
+          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">History is empty.</div>
           <transition-group name="list">
-            <div v-for="log in history" :key="log.id" class="p-5 border border-white/5 rounded-2xl bg-zinc-950/50 flex justify-between items-center opacity-70 mb-4">
+            <div v-for="log in history" :key="log.id" class="p-5 border border-white/5 rounded-2xl bg-zinc-950/50 flex justify-between items-center mb-4 opacity-75">
               <div class="flex items-center gap-4">
                 <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-xs">●</span>
                 <div>
                   <p class="text-sm font-medium text-zinc-300">{{ log.bookTitle }}</p>
-                  <p class="text-[9px] text-zinc-600 uppercase tracking-widest">{{ log.userEmail }}</p>
-                  <p class="text-[8px] text-zinc-500 mt-1 italic">
-                    {{ log.status === 'returned' ? 'Returned at: ' : 'Declined at: ' }} {{ formatTimestamp(log.actionDate) }}
-                  </p>
+                  <p class="text-[9px] text-zinc-600 uppercase">{{ log.userEmail }}</p>
+                  <p class="text-[8px] text-zinc-500 italic mt-1">Status: {{ log.status }} on {{ formatTimestamp(log.actionDate) }}</p>
                 </div>
               </div>
-              <span :class="log.status === 'returned' ? 'text-green-500 border-green-500/20' : 'text-red-500 border-red-500/20'" class="text-[9px] font-black uppercase border px-3 py-1 rounded-full">{{ log.status }}</span>
             </div>
           </transition-group>
         </section>
@@ -124,14 +121,14 @@
         <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
           <div class="flex gap-4 mb-8">
             <input v-model="searchQuery" type="text" placeholder="Filter library..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none focus:border-white/30 transition-all" />
-            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold active:scale-95 transition-all">New Entry</button>
+            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold">New Entry</button>
           </div>
-          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950 transition-all">
+          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
             <table class="w-full text-left">
               <transition-group tag="tbody" name="list" class="divide-y divide-white/[0.03]">
                 <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
                   <td class="p-8 font-medium">{{ book.title }}</td>
-                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500/50 hover:text-red-500 text-[10px] font-bold uppercase transition-all">Remove</button></td>
+                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500 text-[10px] font-bold uppercase">Remove</button></td>
                 </tr>
               </transition-group>
             </table>
@@ -139,6 +136,19 @@
         </section>
       </transition>
     </main>
+
+    <transition name="fade">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center shadow-2xl">
+          <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
+          <p class="text-zinc-500 text-sm mb-8">Babalik ka sa login screen, pre.</p>
+          <div class="flex gap-3">
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
+            <button @click="executeLogout" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <transition name="fade">
       <div v-if="showAddBookModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
@@ -153,32 +163,17 @@
       </div>
     </transition>
 
-    <transition name="fade">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2rem] max-w-sm w-full text-center">
-          <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          </div>
-          <h3 class="text-2xl font-bold mb-2 tracking-tighter text-white">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8">You will need to login again to access the dashboard.</p>
-          <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-zinc-400 hover:text-white transition-all">Cancel</button>
-            <button @click="executeLogout" class="flex-1 py-4 rounded-xl bg-red-600 text-white font-black active:scale-95 transition-all">Logout</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { db, auth } from './lib/firebase'; // Make sure 'auth' is exported from your firebase config
+import { ref, onMounted, onUnmounted, computed, defineEmits } from 'vue';
+import { db, auth } from './lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
-import { signOut } from "firebase/auth"; // Import this for real logout
+import { signOut } from "firebase/auth";
 
-const emit = defineEmits(['logout']); // Optional: for custom handling
+// Define the signal to send to App.vue
+const emit = defineEmits(['logout']);
 
 // State
 const books = ref([]);
@@ -188,7 +183,7 @@ const history = ref([]);
 const activeTab = ref('home');
 const showWelcome = ref(true);
 const showAddBookModal = ref(false);
-const showLogoutModal = ref(false); // Make sure this exists!
+const showLogoutModal = ref(false);
 const newBookTitle = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
@@ -203,33 +198,28 @@ const navItems = [
   { id: 'history', name: 'Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
 ];
 
-// Logic for Logout pre
+// Logout Logic
 const executeLogout = async () => {
   try {
-    if (auth) {
-      await signOut(auth); // Firebase Signout
-    }
-    emit('logout'); // Tell App.vue to show Login page
+    if (auth) await signOut(auth);
+    console.log("Emitting logout signal...");
+    emit('logout'); // Eto yung importante!
     showLogoutModal.value = false;
-    
-    // Force reload para malinis ang states
-    window.location.reload(); 
   } catch (error) {
-    console.error("Logout Error:", error);
-    // Pag nag-error, manual reload na lang
-    window.location.reload();
+    console.error("Error signing out:", error);
+    emit('logout'); // Force exit pa rin
   }
 };
 
 const stats = computed(() => [
-  { label: 'Total Books', value: books.value.length, color: '' },
+  { label: 'Books', value: books.value.length, color: '' },
   { label: 'Pending', value: notifications.value.length, color: 'text-red-500' },
-  { label: 'Active Loans', value: borrowers.value.length, color: 'text-blue-500' },
-  { label: 'Archives', value: history.value.length, color: 'text-zinc-500' }
+  { label: 'Loans', value: borrowers.value.length, color: 'text-blue-500' },
+  { label: 'History', value: history.value.length, color: 'text-zinc-500' }
 ]);
 
 const formatTimestamp = (ts) => {
-  if (!ts) return '...';
+  if (!ts) return 'Now';
   const date = ts.toDate ? ts.toDate() : new Date(ts);
   return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
@@ -281,11 +271,9 @@ const confirmDelete = async (id) => { await deleteDoc(doc(db, "books", id)); };
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-
-.page-enter-active, .page-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.page-enter-active, .page-leave-active { transition: all 0.4s ease; }
 .page-enter-from { opacity: 0; transform: translateY(10px); }
 .page-leave-to { opacity: 0; transform: translateY(-10px); }
-
 .list-enter-active, .list-leave-active { transition: all 0.5s ease; }
 .list-enter-from { opacity: 0; transform: translateX(-20px); }
 .list-leave-to { opacity: 0; transform: translateX(20px); }
