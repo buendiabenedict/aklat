@@ -1,6 +1,7 @@
 <template>
   <div class="bg-black min-h-screen selection:bg-white/30 overflow-hidden font-ios text-white flex items-center justify-center">
     
+    <!-- GREETING SEQUENCE -->
     <transition name="greeting-fade">
       <div v-if="showGreeting" class="fixed inset-0 z-[300] bg-black flex items-center justify-center">
         <transition name="word-rotate" mode="out-in">
@@ -11,6 +12,7 @@
       </div>
     </transition>
 
+    <!-- INITIAL SYSTEM LOADER -->
     <transition name="loader-fade">
       <div v-if="isSystemLoading && !showGreeting" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
         <div class="ios-spinner">
@@ -20,10 +22,13 @@
       </div>
     </transition>
 
+    <!-- MAIN VIEWPORT TRANSITION -->
     <transition name="page-swap" mode="out-in">
       
+      <!-- AUTHENTICATION VIEW -->
       <div v-if="!currentView && !isSystemLoading && !showGreeting" key="auth" class="w-full min-h-screen relative flex items-center justify-center p-6">
         
+        <!-- BACKDROP AMBIENCE -->
         <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div class="orb orb-1"></div>
           <div class="orb orb-2"></div>
@@ -32,6 +37,7 @@
 
         <div class="relative z-10 w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24">
           
+          <!-- AUTH FORM CONTAINER -->
           <div class="w-full max-w-md order-2 lg:order-1">
             <div 
               class="relative backdrop-blur-3xl bg-zinc-900/40 border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
@@ -39,16 +45,19 @@
             >
               <transition name="form-morph" mode="out-in" @enter="updateHeight">
                 
+                <!-- SIGN UP FORM -->
                 <div v-if="!isLogin" key="signup" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
                     <h2 class="text-3xl font-semibold text-white tracking-tight">Create Account</h2>
                     <p class="text-zinc-500 text-sm">Join the digital library network.</p>
                   </header>
                   <form @submit.prevent="handleSignup" class="space-y-4 w-full text-left">
-                    <input v-model="form.name" type="text" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Full Name" />
-                    <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
-                    <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
-                    <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl transition-all active:scale-[0.98]">
+                    <div class="space-y-3">
+                      <input v-model="form.name" type="text" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Full Name" />
+                      <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
+                      <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
+                    </div>
+                    <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50">
                       {{ authLoading ? 'Registering...' : 'Register' }}
                     </button>
                     <p v-if="errorMsg" class="text-red-400 text-[10px] font-bold text-center uppercase tracking-widest mt-2">{{ errorMsg }}</p>
@@ -56,18 +65,21 @@
                   <p class="text-zinc-500 text-sm">Member? <button @click="toggleForm(true)" class="text-white font-semibold hover:underline">Log In</button></p>
                 </div>
 
+                <!-- SIGN IN FORM -->
                 <div v-else key="login" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
                     <h2 class="text-3xl font-semibold text-white tracking-tight">Sign In</h2>
                     <p class="text-zinc-500 text-sm">Access your personal archive.</p>
                   </header>
                   <form @submit.prevent="handleLogin" class="space-y-5 w-full text-left">
-                    <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
-                    <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
-                    <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl active:scale-[0.98]">
+                    <div class="space-y-3">
+                      <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
+                      <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
+                    </div>
+                    <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl active:scale-[0.98] disabled:opacity-50">
                       {{ authLoading ? 'Identifying...' : 'Continue' }}
                     </button>
-                    <p v-if="errorMsg" class="text-white text-[10px] font-bold text-center uppercase tracking-widest mt-4">{{ errorMsg }}</p>
+                    <p v-if="errorMsg" class="text-red-400 text-[10px] font-bold text-center uppercase tracking-widest mt-4">{{ errorMsg }}</p>
                   </form>
                   <p class="text-zinc-500 text-sm">New here? <button @click="toggleForm(false)" class="text-white font-semibold hover:underline">Join Now</button></p>
                 </div>
@@ -76,6 +88,7 @@
             </div>
           </div>
 
+          <!-- HERO TEXT -->
           <div class="w-full lg:max-w-xl text-center lg:text-left space-y-8 order-1 lg:order-2">
             <h1 class="text-7xl md:text-9xl font-bold tracking-tighter leading-[0.8] ios-gradient-text animate-reveal">AKLAT.<br/>SYSTEM.</h1>
             <p class="text-xl md:text-2xl text-zinc-400 font-medium max-w-md mx-auto lg:mx-0 animate-reveal" style="animation-delay: 0.2s">Simple. Secure. Accessible everywhere.</p>
@@ -83,8 +96,8 @@
         </div>
       </div>
 
+      <!-- APP VIEWS (ADMIN / USER) -->
       <Admin v-else-if="currentView === 'admin'" key="admin" class="fixed inset-0 w-full h-full z-50" @logout="handleLogout" />
-      
       <User v-else-if="currentView === 'user'" key="user" class="fixed inset-0 w-full h-full z-50" @logout="handleLogout" />
 
     </transition>
@@ -94,12 +107,12 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import Admin from './Admin.vue';
-import User from './User.vue'; // New Import!
+import User from './User.vue';
 import { auth, db } from './lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
-// State
+// UI Logic State
 const currentView = ref(null);
 const isSystemLoading = ref(true);
 const showGreeting = ref(true);
@@ -108,10 +121,10 @@ const isLogin = ref(true);
 const errorMsg = ref('');
 const containerHeight = ref(580);
 const greetingIndex = ref(0);
-const greetings = ["Hello", "Bonjour", "Hola", "Mabuhay"];
+const greetings = ["Hello", "Bonjour", "Hola", "Mabuhay", "AKLAT"];
 const form = reactive({ name: '', email: '', password: '' });
 
-// Methods
+// Update card height for smooth form morphing
 const updateHeight = () => {
   nextTick(() => {
     const activeEl = document.querySelector('.p-10');
@@ -124,15 +137,20 @@ const toggleForm = (val) => {
   isLogin.value = val;
 };
 
+// Start the intro animation
 const startGreetingSequence = () => {
   const interval = setInterval(() => {
     if (greetingIndex.value < greetings.length - 1) {
       greetingIndex.value++;
     } else {
       clearInterval(interval);
-      setTimeout(() => { showGreeting.value = false; }, 800);
+      setTimeout(() => { 
+        showGreeting.value = false; 
+        // Small delay before revealing content
+        setTimeout(() => { isSystemLoading.value = false; }, 800);
+      }, 800);
     }
-  }, 1000);
+  }, 800);
 };
 
 const handleSignup = async () => {
@@ -140,15 +158,22 @@ const handleSignup = async () => {
   errorMsg.value = "";
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+    
+    // Create initial user record in Firestore
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: form.email,
       fullName: form.name,
-      role: form.email.includes('admin') ? 'Admin' : 'Member',
-      createdAt: serverTimestamp()
+      role: form.email.toLowerCase().includes('admin') ? 'Admin' : 'Member',
+      createdAt: serverTimestamp(),
+      lastActive: serverTimestamp()
     });
-    isLogin.value = true;
-  } catch (err) { errorMsg.value = err.message; }
-  finally { authLoading.value = false; }
+    
+    // Auto login flow is handled by onAuthStateChanged
+  } catch (err) { 
+    errorMsg.value = err.message; 
+  } finally { 
+    authLoading.value = false; 
+  }
 };
 
 const handleLogin = async () => {
@@ -156,40 +181,65 @@ const handleLogin = async () => {
   errorMsg.value = "";
   try {
     await signInWithEmailAndPassword(auth, form.email, form.password);
-  } catch (err) { errorMsg.value = "Invalid login credentials."; }
-  finally { authLoading.value = false; }
+  } catch (err) { 
+    errorMsg.value = "Identity verification failed. Please check credentials."; 
+  } finally { 
+    authLoading.value = false; 
+  }
 };
 
 const handleLogout = async () => {
-  await signOut(auth);
-  currentView.value = null;
+  try {
+    await signOut(auth);
+    currentView.value = null;
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
 };
 
 onMounted(() => {
   startGreetingSequence();
+  
+  // Auth state observer
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      currentView.value = user.email.includes('admin') ? 'admin' : 'user';
+      currentView.value = user.email.toLowerCase().includes('admin') ? 'admin' : 'user';
     } else {
       currentView.value = null;
     }
+    updateHeight();
   });
-  setTimeout(() => { isSystemLoading.value = false; updateHeight(); }, 5000);
 });
 </script>
 
 <style>
-/* CSS Styles remain identical to your current styling to maintain consistency */
-.font-ios { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; }
-.ios-gradient-text { background: linear-gradient(180deg, #FFFFFF 0%, #3F3F46 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* FONT AND THEME */
+.font-ios { 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; 
+}
+
+.ios-gradient-text { 
+  background: linear-gradient(180deg, #FFFFFF 0%, #3F3F46 100%); 
+  -webkit-background-clip: text; 
+  -webkit-text-fill-color: transparent; 
+}
+
+/* ANIMATIONS: GREETING */
 .greeting-fade-leave-active { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); }
 .greeting-fade-leave-to { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-.word-rotate-enter-active, .word-rotate-leave-active { transition: all 0.5s ease; }
-.word-rotate-enter-from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
-.word-rotate-leave-to { opacity: 0; transform: translateY(-20px); filter: blur(10px); }
+
+.word-rotate-enter-active, .word-rotate-leave-active { transition: all 0.4s ease; }
+.word-rotate-enter-from { opacity: 0; transform: translateY(15px); filter: blur(5px); }
+.word-rotate-leave-to { opacity: 0; transform: translateY(-15px); filter: blur(5px); }
+
+/* ANIMATIONS: SYSTEM LOADER */
+.loader-fade-leave-active { transition: opacity 0.6s ease; }
+.loader-fade-leave-to { opacity: 0; }
+
 .ios-spinner { position: relative; width: 32px; height: 32px; }
 .ios-spinner div { position: absolute; left: 46%; top: 10%; width: 8%; height: 25%; background: white; border-radius: 50px; opacity: 0.1; animation: ios-fade 1s linear infinite; }
 @keyframes ios-fade { from { opacity: 1; } to { opacity: 0.1; } }
+
 .bar1 { transform: rotate(0deg) translate(0, -100%); animation-delay: 0s !important; }
 .bar2 { transform: rotate(30deg) translate(0, -100%); animation-delay: -0.916s !important; }
 .bar3 { transform: rotate(60deg) translate(0, -100%); animation-delay: -0.833s !important; }
@@ -202,12 +252,19 @@ onMounted(() => {
 .bar10 { transform: rotate(270deg) translate(0, -100%); animation-delay: -0.25s !important; }
 .bar11 { transform: rotate(300deg) translate(0, -100%); animation-delay: -0.166s !important; }
 .bar12 { transform: rotate(330deg) translate(0, -100%); animation-delay: -0.083s !important; }
+
+/* ANIMATIONS: FORM AND UI */
 .form-morph-enter-active, .form-morph-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 .form-morph-enter-from { opacity: 0; transform: scale(0.98) translateY(10px); }
 .form-morph-leave-to { opacity: 0; transform: scale(0.98) translateY(-10px); }
+
+.page-swap-enter-active, .page-swap-leave-active { transition: opacity 0.5s ease; }
+.page-swap-enter-from, .page-swap-leave-to { opacity: 0; }
+
 .orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.1; pointer-events: none; }
 .orb-1 { width: 800px; height: 800px; background: radial-gradient(circle, #ffffff 0%, transparent 70%); top: -400px; left: -200px; }
 .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, #52525b 0%, transparent 70%); bottom: -300px; right: -100px; }
+
 @keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .animate-reveal { opacity: 0; animation: reveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 </style>
