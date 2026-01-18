@@ -262,7 +262,7 @@
 <script setup>
 import { ref, onMounted, computed, defineEmits, onUnmounted } from 'vue';
 import { db, auth } from './lib/firebase';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy, writeBatch } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy, writeBatch, where, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
 const emit = defineEmits(['logout']);
@@ -370,16 +370,24 @@ const deleteSelectedBooks = async () => {
 };
 
 const approveRequest = async (req) => {
-  // notification id is req.id
+  // Update original request
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
+  
+  // Add to borrowers WITH THE ORIGINAL NOTIFICATION ID
   await addDoc(collection(db, "borrowers"), { 
     ...req,
-    requestId: req.id, // Save the notification/request ID for later syncing
+    originalRequestId: req.id, // VERY IMPORTANT: Ito ang link natin
     returnSchedule: req.returnDate, 
     status: 'approved', 
     approvedAt: serverTimestamp() 
   });
-  await addDoc(collection(db, "history"), { bookTitle: req.bookTitle, userEmail: req.userEmail, status: 'approved', createdAt: serverTimestamp() });
+  
+  await addDoc(collection(db, "history"), { 
+    bookTitle: req.bookTitle, 
+    userEmail: req.userEmail, 
+    status: 'approved', 
+    createdAt: serverTimestamp() 
+  });
 };
 
 const declineRequest = async (id) => {
@@ -388,7 +396,7 @@ const declineRequest = async (id) => {
   await addDoc(collection(db, "history"), { bookTitle: req?.bookTitle, userEmail: req?.userEmail, status: 'declined', createdAt: serverTimestamp() });
 };
 
-// 🛠️ THE GHOST FIX: SYNCED RETURN LOGIC
+// 🛠️ THE AGGRESSIVE FIX: DELETE & SYNC
 const confirmReturn = (person) => {
   targetBorrower.value = person;
   showReturnModal.value = true;
@@ -397,23 +405,31 @@ const confirmReturn = (person) => {
 const executeReturn = async () => {
   if (!targetBorrower.value) return;
   
-  const { id, bookTitle, userEmail, userId, requestId } = targetBorrower.value;
+  const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
 
   try {
     const batch = writeBatch(db);
 
-    // 1. Tanggalin sa Admin Borrowers list
+    // 1. Literal na tanggalin sa "borrowers" collection (Dapat mawala na sa Admin Borrowers Tab)
     batch.delete(doc(db, "borrowers", id));
 
-    // 2. I-update ang STATUS ng original notification para mawala sa "Borrowed Assets"
-    // Dahil ang user view ay nag-fa-filter ng "status === 'approved'"
-    if (requestId) {
-      batch.update(doc(db, "notifications", requestId), { 
-        status: 'returned_archive' 
+    // 2. I-archive ang original notification/request
+    // Kung walang originalRequestId, hahanapin natin via query para sigurado
+    if (originalRequestId) {
+      batch.update(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
+    } else {
+      // Emergency sync: hanapin ang approved notification para sa librong ito ng user na ito
+      const q = query(collection(db, "notifications"), 
+                where("userId", "==", userId), 
+                where("bookTitle", "==", bookTitle), 
+                where("status", "==", "approved"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(d => {
+        batch.update(doc(db, "notifications", d.id), { status: 'returned_archive' });
       });
     }
 
-    // 3. Mag-send ng bagong notification para sa Inbox ng user
+    // 3. Mag-send ng Inbox Notification kay User
     const newNotifRef = doc(collection(db, "notifications"));
     batch.set(newNotifRef, {
       userId: userId,
@@ -424,24 +440,23 @@ const executeReturn = async () => {
       createdAt: serverTimestamp()
     });
 
-    // 4. Mag-add sa System Logs
-    const historyRef = doc(collection(db, "history"));
-    batch.set(historyRef, {
-      bookTitle, 
-      userEmail, 
-      status: 'returned', 
-      createdAt: serverTimestamp() 
+    // 4. Record sa System Logs
+    const logRef = doc(collection(db, "history"));
+    batch.set(logRef, {
+      bookTitle,
+      userEmail,
+      status: 'returned',
+      createdAt: serverTimestamp()
     });
 
-    // Execute all at once
     await batch.commit();
 
     showReturnModal.value = false;
     targetBorrower.value = null;
     
-    console.log("Sync Complete: Ghost entries cleared! 👻🚫");
+    console.log("Success: Database Cleaned! 🧹");
   } catch (error) {
-    console.error("Return error:", error);
+    console.error("Critical Error during Return:", error);
   }
 };
 
