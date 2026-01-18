@@ -75,25 +75,25 @@
             
             <!-- DASHBOARD -->
             <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 pt-4">
-            <section>
-              <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
-              <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
-            </section>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
-                <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
-                <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
-              </div>
-              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
-                <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
-                <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
-              </div>
-              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem] col-span-2">
-                <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Community Strength</p>
-                <p class="text-4xl font-bold tracking-tighter">{{ users.length }}</p>
+              <section>
+                <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
+                <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
+              </section>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
+                  <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
+                  <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
+                </div>
+                <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
+                  <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
+                  <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
+                </div>
+                <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem] col-span-2">
+                  <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Community Strength</p>
+                  <p class="text-4xl font-bold tracking-tighter">{{ users.length }}</p>
+                </div>
               </div>
             </div>
-          </div>
 
           <!-- INVENTORY -->
           <div v-else-if="activeTab === 'inventory'" key="inventory" class="pt-4">
@@ -154,13 +154,40 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Borrowers</h2>
             </section>
             <div v-if="borrowers.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Active Loans</div>
-            <transition-group name="list" tag="div" class="space-y-3">
-              <div v-for="person in borrowers" :key="person.id" class="p-6 bg-zinc-900/50 backdrop-blur-sm rounded-[2rem] flex justify-between items-center border border-white/5">
-                <div class="flex-1">
-                  <h3 class="text-base font-black uppercase tracking-tight mb-1">{{ person.bookTitle }}</h3>
-                  <p class="text-[9px] font-bold uppercase opacity-40 tracking-widest">{{ person.userEmail }}</p>
+            <transition-group name="list" tag="div" class="space-y-4">
+              <div v-for="person in borrowers" :key="person.id" 
+                   class="p-8 bg-zinc-900/50 backdrop-blur-sm rounded-[2.5rem] flex flex-col md:flex-row justify-between items-start md:items-center border border-white/5 group relative overflow-hidden">
+                
+                <div class="flex-1 space-y-4">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span :class="isOverdue(person.returnSchedule) ? 'bg-red-500' : 'bg-emerald-500'" class="w-1.5 h-1.5 rounded-full animate-pulse"></span>
+                      <p class="text-[8px] font-black uppercase tracking-[0.3em] opacity-40">Active Possession</p>
+                    </div>
+                    <h3 class="text-xl font-black uppercase tracking-tight leading-none mb-1">{{ person.bookTitle }}</h3>
+                    <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest">{{ person.userEmail }}</p>
+                  </div>
+
+                  <div class="flex items-center gap-6">
+                    <div>
+                      <p class="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">Borrowed</p>
+                      <p class="text-[10px] font-mono font-bold">{{ formatTimestamp(person.borrowedAt) }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">Scheduled Return</p>
+                      <p :class="isOverdue(person.returnSchedule) ? 'text-red-500' : 'text-zinc-300'" class="text-[10px] font-mono font-bold">
+                        {{ person.returnSchedule || 'N/A' }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <button @click="handleReturn(person)" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all">Return</button>
+
+                <div class="mt-6 md:mt-0 w-full md:w-auto flex items-center gap-4">
+                  <div v-if="isOverdue(person.returnSchedule)" class="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full text-[8px] font-black uppercase tracking-widest">
+                    Overdue
+                  </div>
+                  <button @click="handleReturn(person)" class="flex-1 md:flex-none px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all shadow-xl shadow-white/5">Mark Returned</button>
+                </div>
               </div>
             </transition-group>
           </div>
@@ -363,6 +390,15 @@ const selectedBooks = ref([]);
 const newBook = ref({ title: '' });
 const currentTimeDisplay = ref('');
 
+// Logic to check if a return is overdue (Matches users.vue logic)
+const isOverdue = (schedule) => {
+  if (!schedule) return false;
+  const now = new Date();
+  const target = new Date(schedule.replace(/-/g, '/'));
+  target.setHours(7, 30, 0, 0); 
+  return now.getTime() > target.getTime();
+};
+
 // Generate unique styles for ambient circles
 const getCircleStyle = (index) => {
   const size = Math.random() * 200 + 100; // 100px to 300px
@@ -393,12 +429,17 @@ const updateClock = () => {
 
 const onWelcomeFinished = () => { contentVisible.value = true; };
 
+const formatTimestamp = (ts) => {
+  if (!ts) return 'N/A';
+  if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleDateString() + ' ' + new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return ts.toString();
+};
+
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
   setTimeout(() => { showWelcome.value = false; }, 1500);
 
-  // Use simple collection listeners (No complex queries requiring composite indexes)
   onSnapshot(collection(db, "books"), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "notifications"), (s) => notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -464,18 +505,18 @@ const handleApproval = async (req, isApproved) => {
       createdAt: serverTimestamp() 
     });
     
-    // 3. If Approved, Add to Borrowers and Ensure User is registered in 'users'
+    // 3. If Approved, Add all relevant data to Borrowers collection
     if (isApproved) {
-      // Add to Borrowers collection
       await addDoc(collection(db, "borrowers"), { 
-        bookId: req.bookId, 
+        bookId: req.bookId || null, 
         bookTitle: req.bookTitle, 
         userEmail: req.userEmail, 
         userId: req.userId, 
-        borrowedAt: serverTimestamp() 
+        borrowedAt: serverTimestamp(),
+        returnSchedule: req.returnSchedule || null // Carry over the due date
       });
 
-      // Register/Update User in central 'users' database (Collection Name: "users")
+      // Register/Update User in central 'users' database
       await setDoc(doc(db, "users", req.userId), {
         email: req.userEmail,
         userId: req.userId,
@@ -488,7 +529,7 @@ const handleApproval = async (req, isApproved) => {
 
   // Reset Modals
   requestToAuthorize.value = null;
-  requestToDecline.value = null;
+  requestToDecline = null;
 };
 
 const handleReturn = async (person) => {
