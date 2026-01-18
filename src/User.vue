@@ -129,21 +129,16 @@
 
     <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-full max-w-[360px] px-6">
       <nav class="bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl">
-        
         <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'bg-white text-black' : 'text-zinc-500'" class="flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
         </button>
-
         <button @click="activeTab = 'explore'" :class="activeTab === 'explore' ? 'bg-white text-black' : 'text-zinc-500'" class="flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </button>
-
         <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'bg-white text-black' : 'text-zinc-500'" class="flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </button>
-
         <div class="w-px h-6 bg-white/10"></div>
-
         <button @click="showLogoutModal = true" class="flex items-center justify-center w-12 h-12 rounded-full text-zinc-600 hover:text-red-500 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
         </button>
@@ -159,14 +154,26 @@
             
             <div class="space-y-6">
               <div>
-                <input type="date" v-model="returnDate" :min="minDate" @change="validateDate" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-6 px-6 text-white outline-none appearance-none font-bold" />
+                <input 
+                  type="date" 
+                  v-model="returnDate" 
+                  :min="minDate" 
+                  @input="validateDate" 
+                  class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-6 px-6 text-white outline-none appearance-none font-bold" 
+                />
                 <p v-if="dateError" class="text-red-600 text-[9px] mt-4 font-black uppercase tracking-[0.2em]">{{ dateError }}</p>
               </div>
             </div>
 
             <div class="flex gap-4 mt-12">
               <button @click="closeModal" class="flex-1 py-4 text-zinc-600 font-bold uppercase text-[10px] tracking-widest">Abort</button>
-              <button @click="submitRequest" :disabled="!returnDate || dateError" class="flex-1 py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest disabled:opacity-5 transition-all">Confirm</button>
+              <button 
+                @click="submitRequest" 
+                :disabled="!returnDate || dateError !== ''" 
+                class="flex-1 py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest disabled:opacity-20 transition-all"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </transition>
@@ -246,11 +253,19 @@ const closeModal = () => {
   selectedBook.value = null;
 };
 
+// IMPROVED VALIDATION LOGIC
 const validateDate = () => {
-  if (!returnDate.value) return;
-  const d = new Date(returnDate.value).getUTCDay();
-  // If Saturday (6) or Sunday (0)
-  if (d === 0 || d === 6) {
+  if (!returnDate.value) {
+    dateError.value = "";
+    return;
+  }
+  
+  // Create date using local string parts to avoid timezone shifting
+  const [year, month, day] = returnDate.value.split('-').map(Number);
+  const selected = new Date(year, month - 1, day);
+  const dayOfWeek = selected.getDay(); // 0 = Sunday, 6 = Saturday
+
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
     dateError.value = "Selected day is a weekend.";
   } else {
     dateError.value = "";
@@ -258,7 +273,7 @@ const validateDate = () => {
 };
 
 const submitRequest = async () => {
-  if (!auth.currentUser || !returnDate.value || dateError.value) return;
+  if (!auth.currentUser || !returnDate.value || dateError.value !== "") return;
   try {
     await addDoc(collection(db, "notifications"), {
       bookId: selectedBook.value.id,
@@ -300,5 +315,5 @@ const executeLogout = async () => {
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 .slide-up-enter-from { opacity: 0; transform: translate(-50%, -20px); }
 
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
 </style>
