@@ -205,11 +205,11 @@
               </div>
 
               <div class="flex justify-center gap-4 mb-8">
-                <a href="#" class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                <a href="https://www.facebook.com/ben.benedict.31392" target="_blank" class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 </a>
-                <a href="#" class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z"/></svg>
+                <a href="https://www.instagram.com/buendia.benedict/" target="_blank" class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                 </a>
               </div>
 
@@ -268,7 +268,7 @@
       </div>
     </transition>
 
-    <!-- OTHER MODALS (Add, Delete, etc) -->
+    <!-- OTHER MODALS -->
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full">
@@ -326,7 +326,7 @@ import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { db } from './lib/firebase';
 import { 
   collection, onSnapshot, addDoc, deleteDoc, doc, 
-  updateDoc, serverTimestamp, query, orderBy, writeBatch 
+  setDoc, updateDoc, serverTimestamp, query, orderBy, writeBatch 
 } from "firebase/firestore";
 
 const showWelcome = ref(true);
@@ -366,15 +366,17 @@ onMounted(() => {
   clockInterval = setInterval(updateClock, 1000);
   setTimeout(() => { showWelcome.value = false; }, 1500);
 
-  onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
+  // Use simple collection listeners (No complex queries requiring composite indexes)
+  onSnapshot(collection(db, "books"), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
-  onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
-  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
+  onSnapshot(collection(db, "notifications"), (s) => notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
+  onSnapshot(collection(db, "history"), (s) => historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
 });
 
 onUnmounted(() => clearInterval(clockInterval));
 
+// Filter pending locally (Rule 2)
 const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
 
 const toggleSelection = (id) => {
@@ -417,27 +419,39 @@ const confirmDecline = (req) => { requestToDecline.value = req; };
 const handleApproval = async (req, isApproved) => {
   const status = isApproved ? 'approved' : 'declined';
   
-  // 1. Update Notification Status
-  await updateDoc(doc(db, "notifications", req.id), { status });
-  
-  // 2. Log to History
-  await addDoc(collection(db, "history"), { 
-    bookTitle: req.bookTitle, 
-    userEmail: req.userEmail, 
-    userId: req.userId, 
-    status: status, 
-    createdAt: serverTimestamp() 
-  });
-  
-  // 3. Add to Borrowers if Approved
-  if (isApproved) {
-    await addDoc(collection(db, "borrowers"), { 
-      bookId: req.bookId, 
+  try {
+    // 1. Update Notification Status
+    await updateDoc(doc(db, "notifications", req.id), { status });
+    
+    // 2. Log to History
+    await addDoc(collection(db, "history"), { 
       bookTitle: req.bookTitle, 
       userEmail: req.userEmail, 
       userId: req.userId, 
-      borrowedAt: serverTimestamp() 
+      status: status, 
+      createdAt: serverTimestamp() 
     });
+    
+    // 3. If Approved, Add to Borrowers and Ensure User is registered in 'users'
+    if (isApproved) {
+      // Add to Borrowers collection
+      await addDoc(collection(db, "borrowers"), { 
+        bookId: req.bookId, 
+        bookTitle: req.bookTitle, 
+        userEmail: req.userEmail, 
+        userId: req.userId, 
+        borrowedAt: serverTimestamp() 
+      });
+
+      // Register/Update User in central 'users' database (Collection Name: "users")
+      await setDoc(doc(db, "users", req.userId), {
+        email: req.userEmail,
+        userId: req.userId,
+        lastActive: serverTimestamp()
+      }, { merge: true });
+    }
+  } catch (error) {
+    console.error("Operation failed:", error);
   }
 
   // Reset Modals
@@ -446,7 +460,13 @@ const handleApproval = async (req, isApproved) => {
 };
 
 const handleReturn = async (person) => {
-  await addDoc(collection(db, "history"), { bookTitle: person.bookTitle, userEmail: person.userEmail, userId: person.userId, status: 'returned', createdAt: serverTimestamp() });
+  await addDoc(collection(db, "history"), { 
+    bookTitle: person.bookTitle, 
+    userEmail: person.userEmail, 
+    userId: person.userId, 
+    status: 'returned', 
+    createdAt: serverTimestamp() 
+  });
   await deleteDoc(doc(db, "borrowers", person.id));
 };
 
