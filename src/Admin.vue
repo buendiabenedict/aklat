@@ -26,8 +26,8 @@
           </div>
           <span class="ml-4 font-bold text-sm tracking-tight">{{ item.name }}</span>
           
-          <span v-if="item.id === 'notifications' && pendingRequests.length > 0" class="absolute right-4 w-5 h-5 bg-red-600 text-white text-[10px] rounded-full flex items-center justify-center animate-bounce">
-            {{ pendingRequests.length }}
+          <span v-if="item.id === 'notifications' && notifications.length > 0" class="absolute right-4 w-5 h-5 bg-red-600 text-white text-[10px] rounded-full flex items-center justify-center animate-bounce">
+            {{ notifications.length }}
           </span>
         </button>
       </nav>
@@ -38,7 +38,7 @@
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
           </div>
-          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">DB: {{ dbStatus }}</p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
         </div>
         <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all">
           <span class="font-bold text-xs uppercase tracking-widest">Sign Out</span>
@@ -52,113 +52,92 @@
     >
       <header class="mb-16 flex justify-between items-start">
         <div>
-          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">{{ currentTime }} • Admin Console</p>
+          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">{{ currentTime }} • Cloud Database</p>
           <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab.replace('_', ' ') }}</h2>
-        </div>
-        <div v-if="activeTab === 'inventory'">
-          <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-all">Add New Book</button>
         </div>
       </header>
 
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Books</h3>
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Inventory</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
           </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Pending</h3>
-            <p class="text-3xl font-bold tracking-tighter text-red-500">{{ pendingRequests.length }}</p>
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-red-500">New Requests</h3>
+            <p class="text-3xl font-bold tracking-tighter">{{ notifications.length }}</p>
           </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">On Loan</h3>
-            <p class="text-3xl font-bold tracking-tighter text-blue-500">{{ approvedRequests.length }}</p>
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-blue-500">Active Loans</h3>
+            <p class="text-3xl font-bold tracking-tighter">{{ borrowers.length }}</p>
           </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">History</h3>
-            <p class="text-3xl font-bold tracking-tighter text-zinc-500">{{ historyRequests.length }}</p>
+          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-zinc-500">Total Logs</h3>
+            <p class="text-3xl font-bold tracking-tighter">{{ history.length }}</p>
           </div>
         </div>
 
-        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-8">
-          <input v-model="searchQuery" type="text" placeholder="Search inventory..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full max-w-xl outline-none" />
-          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
-            <table class="w-full text-left">
-              <thead>
-                <tr class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] border-b border-white/5">
-                  <th class="p-8">Book Title</th>
-                  <th class="p-8 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/[0.03]">
-                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
-                  <td class="p-8 font-medium tracking-tight">{{ book.title }}</td>
-                  <td class="p-8 text-right">
-                    <button @click="confirmDelete(book.id)" class="text-red-500/50 hover:text-red-500 font-bold text-[10px] uppercase tracking-widest transition-all">Remove</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-4">
+          <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests. ☕</div>
+          <div v-for="notif in notifications" :key="notif.id" class="p-6 border border-white/20 rounded-2xl bg-zinc-950 flex justify-between items-center animate-in fade-in duration-500">
+            <div class="flex gap-4 items-center">
+              <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-bold">{{ notif.userEmail[0].toUpperCase() }}</div>
+              <div>
+                <p class="text-sm font-bold tracking-tight text-zinc-200"><span class="text-zinc-500 font-normal">{{ notif.userEmail }}</span> wants to borrow <span class="italic text-white">"{{ notif.bookTitle }}"</span></p>
+                <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-black mt-1">Pending Approval</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button @click="handleAction(notif, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-zinc-200 transition-all active:scale-95">Approve</button>
+              <button @click="handleAction(notif, 'rejected')" class="px-6 py-2 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-white/5 transition-all">Decline</button>
+            </div>
           </div>
         </section>
 
         <section v-else-if="activeTab === 'borrowed'" :key="'borrowed'" class="space-y-4">
-          <div v-if="approvedRequests.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No books currently on loan.</div>
-          <div v-for="item in approvedRequests" :key="item.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex justify-between items-center group">
+          <div v-if="borrowers.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No active borrowers found.</div>
+          <div v-for="item in borrowers" :key="item.id" class="p-6 border border-blue-500/10 rounded-2xl bg-zinc-950 flex justify-between items-center">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center font-bold">{{ item.userEmail[0].toUpperCase() }}</div>
+              <div class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-lg flex items-center justify-center font-bold">📖</div>
               <div>
-                <p class="text-sm font-bold">{{ item.bookTitle }}</p>
-                <p class="text-[10px] text-zinc-500">{{ item.userEmail }}</p>
+                <p class="text-sm font-bold text-white">{{ item.bookTitle }}</p>
+                <p class="text-[10px] text-zinc-500 italic">{{ item.userEmail }}</p>
               </div>
             </div>
-            <button @click="updateNotifStatus(item.id, 'returned')" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 transition-all shadow-lg active:scale-95">Mark as Returned</button>
-          </div>
-        </section>
-
-        <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-4">
-          <div v-if="pendingRequests.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No new borrow requests.</div>
-          <div v-for="notif in pendingRequests" :key="notif.id" class="p-6 border border-white/20 rounded-2xl bg-zinc-950 flex justify-between items-center">
-            <div class="flex gap-4 items-center">
-              <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-bold">{{ notif.userEmail[0].toUpperCase() }}</div>
-              <div>
-                <p class="text-sm font-bold tracking-tight text-zinc-200"><span class="text-zinc-500 font-normal">{{ notif.userEmail }}</span> requested <span class="italic text-white">"{{ notif.bookTitle }}"</span></p>
-                <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-black mt-1">Status: {{ notif.status }}</p>
-              </div>
-            </div>
-            <div class="flex gap-3">
-              <button @click="updateNotifStatus(notif.id, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-zinc-200">Approve</button>
-              <button @click="updateNotifStatus(notif.id, 'rejected')" class="px-6 py-2 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-white/5">Decline</button>
-            </div>
+            <button @click="handleReturn(item)" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 shadow-xl active:scale-95">Mark as Returned</button>
           </div>
         </section>
 
         <section v-else-if="activeTab === 'history'" :key="'history'" class="space-y-4">
-          <div v-if="historyRequests.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No transaction history found.</div>
-          <div v-for="item in historyRequests" :key="item.id" class="p-6 border border-white/5 rounded-2xl bg-zinc-950/50 flex justify-between items-center group opacity-80">
+          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">History is empty.</div>
+          <div v-for="log in history" :key="log.id" class="p-5 border border-white/5 rounded-2xl bg-zinc-950/50 flex justify-between items-center opacity-70">
             <div class="flex items-center gap-4">
-              <div :class="item.status === 'returned' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'" class="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                 {{ item.status === 'returned' ? '✓' : '✕' }}
-              </div>
+              <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-xs">●</span>
               <div>
-                <p class="text-sm font-bold text-zinc-300">{{ item.bookTitle }}</p>
-                <p class="text-[10px] text-zinc-600">{{ item.userEmail }}</p>
+                <p class="text-sm font-medium text-zinc-300">{{ log.bookTitle }}</p>
+                <p class="text-[9px] text-zinc-600 uppercase tracking-widest">{{ log.userEmail }}</p>
               </div>
             </div>
             <div class="text-right">
-              <p :class="item.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-[10px] font-black uppercase tracking-widest">{{ item.status }}</p>
-              <p class="text-[9px] text-zinc-700 mt-1 uppercase tracking-tighter">Archived Record</p>
+              <span :class="log.status === 'returned' ? 'text-green-500 border-green-500/20' : 'text-red-500 border-red-500/20'" class="text-[9px] font-black uppercase tracking-[0.2em] border px-3 py-1 rounded-full">{{ log.status }}</span>
             </div>
           </div>
         </section>
 
-        <section v-else-if="activeTab === 'community'" :key="'community'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div v-for="user in users" :key="user.id" class="p-6 border border-white/10 rounded-2xl bg-zinc-950 flex items-center gap-4">
-            <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center font-bold">{{ user.email[0].toUpperCase() }}</div>
-            <div class="min-w-0">
-              <p class="font-bold truncate text-sm">{{ user.email }}</p>
-              <p class="text-[9px] text-zinc-600 uppercase tracking-widest">{{ user.role || 'Member' }}</p>
-            </div>
+        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
+          <div class="flex gap-4 mb-8">
+            <input v-model="searchQuery" type="text" placeholder="Search books..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none" />
+            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold">Add Book</button>
+          </div>
+          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
+            <table class="w-full text-left">
+              <tbody class="divide-y divide-white/[0.03]">
+                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
+                  <td class="p-8 font-medium">{{ book.title }}</td>
+                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500 text-[10px] font-bold uppercase tracking-widest">Remove</button></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
       </transition>
@@ -166,39 +145,19 @@
 
     <transition name="fade">
       <div v-if="showAddBookModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-lg w-full">
-          <h3 class="text-2xl font-bold mb-6 tracking-tighter">Add New Book</h3>
-          <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="Title..." class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white mb-8 outline-none focus:border-white/40"/>
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-lg w-full shadow-2xl">
+          <h3 class="text-2xl font-bold mb-6 tracking-tighter italic underline decoration-blue-500">Add to Collection</h3>
+          <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="Book Title..." class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white mb-8 outline-none focus:border-white/40"/>
           <div class="flex gap-3">
             <button @click="showAddBookModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white">Cancel</button>
-            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-bold">Save</button>
+            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-black">Register Book</button>
           </div>
         </div>
       </div>
     </transition>
 
     <transition name="fade">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
-          <h3 class="text-2xl font-bold mb-8 tracking-tighter">Sign Out?</h3>
-          <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
-            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold">Logout</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 text-center">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full">
-          <h3 class="text-2xl font-bold mb-8 tracking-tighter">Delete Book?</h3>
-          <div class="flex gap-3">
-            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
-            <button @click="deleteBook" class="flex-1 py-4 rounded-xl bg-red-600 font-bold">Confirm</button>
-          </div>
-        </div>
-      </div>
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6"><div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center"><h3 class="text-2xl font-bold mb-8 tracking-tighter">Sign Out?</h3><div class="flex gap-3"><button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button><button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold">Logout</button></div></div></div>
     </transition>
 
   </div>
@@ -207,18 +166,18 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { db } from './lib/firebase';
-import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
 // State
 const books = ref([]);
 const users = ref([]);
 const notifications = ref([]);
+const borrowers = ref([]);
+const history = ref([]);
 const activeTab = ref('home');
 const showWelcome = ref(true);
 const showLogoutModal = ref(false);
-const showDeleteModal = ref(false);
 const showAddBookModal = ref(false);
-const bookToDelete = ref(null);
 const newBookTitle = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
@@ -227,55 +186,59 @@ const dbStatus = ref('online');
 const navItems = [
   { id: 'home', name: 'Dashboard', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { id: 'inventory', name: 'Inventory', path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-  { id: 'borrowed', name: 'Borrowers', path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197' },
-  { id: 'history', name: 'History', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
   { id: 'notifications', name: 'Requests', path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-  { id: 'community', name: 'Community', path: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0' }
+  { id: 'borrowed', name: 'Borrowers', path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197' },
+  { id: 'history', name: 'History Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
 ];
 
-// Computed Data Filtering
-const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase().includes(searchQuery.value.toLowerCase())));
-const pendingRequests = computed(() => notifications.value.filter(n => n.status === 'pending'));
-const approvedRequests = computed(() => notifications.value.filter(n => n.status === 'approved'));
-const historyRequests = computed(() => notifications.value.filter(n => n.status === 'returned' || n.status === 'rejected'));
-
-const updateTime = () => {
-  currentTime.value = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-};
-
+// Data Syncing
 const loadData = () => {
   onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => {
-    notifications.value = s.docs.map(d => ({id: d.id, ...d.data()}));
+  onSnapshot(collection(db, "notifications"), (s) => notifications.value = s.docs.map(d => ({id: d.id, ...d.data()})));
+  onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({id: d.id, ...d.data()})));
+  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
+    history.value = s.docs.map(d => ({id: d.id, ...d.data()}));
     dbStatus.value = 'online';
   }, () => dbStatus.value = 'offline');
 };
 
-const addBook = async () => {
-  if (!newBookTitle.value.trim()) return;
-  await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() });
-  newBookTitle.value = ''; showAddBookModal.value = false;
+// Handlers for Collections Transfer
+const handleAction = async (notif, status) => {
+  const data = { ...notif, status, createdAt: serverTimestamp() };
+  delete data.id;
+
+  try {
+    if (status === 'approved') {
+      await addDoc(collection(db, "borrowers"), data);
+    } else {
+      await addDoc(collection(db, "history"), data);
+    }
+    // Remove from active notifications
+    await deleteDoc(doc(db, "notifications", notif.id));
+  } catch (err) { console.error(err); }
 };
 
-const confirmDelete = (id) => { bookToDelete.value = id; showDeleteModal.value = true; };
-const deleteBook = async () => { await deleteDoc(doc(db, "books", bookToDelete.value)); showDeleteModal.value = false; };
+const handleReturn = async (borrower) => {
+  const data = { ...borrower, status: 'returned', createdAt: serverTimestamp() };
+  delete data.id;
 
-const updateNotifStatus = async (id, newStatus) => {
-  await updateDoc(doc(db, "notifications", id), { 
-    status: newStatus,
-    updatedAt: serverTimestamp() 
-  });
+  try {
+    await addDoc(collection(db, "history"), data);
+    await deleteDoc(doc(db, "borrowers", borrower.id));
+  } catch (err) { console.error(err); }
 };
+
+// Computed
+const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase().includes(searchQuery.value.toLowerCase())));
+
+const updateTime = () => { currentTime.value = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' }); };
 
 let timer;
-onMounted(() => {
-  loadData();
-  updateTime();
-  timer = setInterval(updateTime, 1000);
-  setTimeout(() => showWelcome.value = false, 3000);
-});
+onMounted(() => { loadData(); updateTime(); timer = setInterval(updateTime, 1000); setTimeout(() => showWelcome.value = false, 3000); });
 onUnmounted(() => clearInterval(timer));
+
+const addBook = async () => { if (!newBookTitle.value.trim()) return; await addDoc(collection(db, "books"), { title: newBookTitle.value, createdAt: serverTimestamp() }); newBookTitle.value = ''; showAddBookModal.value = false; };
+const confirmDelete = async (id) => { await deleteDoc(doc(db, "books", id)); };
 </script>
 
 <style scoped>
