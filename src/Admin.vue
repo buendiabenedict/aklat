@@ -8,7 +8,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.744c0 5.548 4.075 10.14 9 10.856 4.925-.716 9-5.308 9-10.856 0-1.31-.21-2.57-.598-3.744A11.959 11.959 0 0112 2.714z" />
           </svg>
         </div>
-        <h1 class="text-lg font-bold tracking-tighter italic uppercase">Admin Central</h1>
+        <h1 class="text-lg font-bold tracking-tighter uppercase">Admin Central</h1>
       </div>
       <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
         <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
@@ -22,7 +22,7 @@
         <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 py-4 text-left">
           <section>
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Overview</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Dashboard</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Dashboard</h2>
           </section>
 
           <div class="grid grid-cols-2 gap-3">
@@ -35,8 +35,8 @@
               <p class="text-3xl font-bold tracking-tighter text-blue-500">{{ borrowers.length }}</p>
             </div>
             <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl col-span-2">
-              <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Pending Requests</p>
-              <p class="text-3xl font-bold tracking-tighter text-amber-500">{{ pendingRequests.length }}</p>
+              <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total History Logs</p>
+              <p class="text-3xl font-bold tracking-tighter text-zinc-300">{{ historyLogs.length }}</p>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@
           <section class="mb-6 flex justify-between items-end">
             <div>
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Repository</p>
-              <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Inventory</h2>
+              <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Inventory</h2>
             </div>
             <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -53,9 +53,9 @@
           </section>
           
           <div class="space-y-2">
-            <div v-for="book in books" :key="book.id" class="bg-zinc-950 border border-white/5 p-4 rounded-xl flex items-center justify-between">
+            <div v-for="book in books" :key="book.id" class="bg-zinc-950 border border-white/5 p-4 rounded-xl flex items-center justify-between hover:border-white/10 transition-all">
               <div>
-                <h3 class="text-sm font-bold tracking-tight uppercase italic leading-none">{{ book.title }}</h3>
+                <h3 class="text-sm font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
                 <p class="text-[8px] text-zinc-600 uppercase mt-1 tracking-widest">ID: {{ book.id.slice(0,8) }}</p>
               </div>
               <button @click="deleteBook(book.id)" class="p-2 text-zinc-800 hover:text-red-500 transition-colors">
@@ -68,7 +68,7 @@
         <div v-else-if="activeTab === 'requests'" key="requests" class="py-10 text-left">
           <section class="mb-6">
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Queue</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Requests</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Requests</h2>
           </section>
 
           <div v-if="pendingRequests.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
@@ -93,8 +93,12 @@
         <div v-else-if="activeTab === 'borrowers'" key="borrowers" class="py-10 text-left">
           <section class="mb-6">
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Live Assets</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Borrowers</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
+
+          <div v-if="borrowers.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
+            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">No Active Borrowers</p>
+          </div>
 
           <div v-for="person in borrowers" :key="person.id" class="bg-white text-black p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] border-blue-600">
             <div>
@@ -107,17 +111,28 @@
 
         <div v-else-if="activeTab === 'logs'" key="logs" class="py-10 text-left">
           <section class="mb-6">
-            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">History</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">System Logs</h2>
+            <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Historical Archive</p>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">System Logs</h2>
           </section>
           
+          <div v-if="historyLogs.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
+            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">No Records in History</p>
+          </div>
+
           <div class="space-y-2">
-            <div v-for="log in allLogs" :key="log.id" class="p-4 bg-zinc-950 border border-white/5 rounded-xl flex justify-between items-center">
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-tight">{{ log.bookTitle }}</p>
-                <p class="text-[8px] font-black tracking-widest uppercase mt-0.5" :class="log.status === 'approved' ? 'text-green-500' : 'text-red-500'">{{ log.status }}</p>
+            <div v-for="log in historyLogs" :key="log.id" class="p-4 bg-zinc-950 border border-white/5 rounded-xl flex justify-between items-center hover:bg-zinc-900 transition-colors">
+              <div class="max-w-[70%]">
+                <p class="text-[10px] font-bold uppercase tracking-tight truncate">{{ log.bookTitle || 'Archived Entry' }}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[7px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded" :class="getLogBadgeClass(log.status)">
+                    {{ log.status || 'Archived' }}
+                  </span>
+                  <p class="text-[8px] font-bold text-zinc-500 truncate">{{ log.userEmail }}</p>
+                </div>
               </div>
-              <p class="text-[8px] font-mono text-zinc-800">{{ log.userEmail }}</p>
+              <div class="text-right">
+                <p class="text-[8px] font-mono text-zinc-700 uppercase">{{ formatTimestamp(log.createdAt) }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -125,12 +140,12 @@
         <div v-else-if="activeTab === 'profile'" key="profile" class="py-10 text-center">
           <section class="text-left mb-10">
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
-            <h2 class="text-5xl font-bold tracking-tighter uppercase italic apple-gradient">Admin Profile</h2>
+            <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Admin Profile</h2>
           </section>
 
           <div class="w-24 h-24 bg-blue-600 border border-blue-400 mx-auto rounded-[2.5rem] flex items-center justify-center text-3xl font-black mb-4 shadow-2xl">A</div>
-          <h2 class="text-2xl font-bold tracking-tighter uppercase italic">{{ auth.currentUser?.email }}</h2>
-          <p class="text-blue-500 text-[9px] font-bold uppercase tracking-[0.4em] mt-2 italic">System Administrator</p>
+          <h2 class="text-2xl font-bold tracking-tighter uppercase">{{ auth.currentUser?.email }}</h2>
+          <p class="text-blue-500 text-[9px] font-bold uppercase tracking-[0.4em] mt-2">System Administrator</p>
           
           <div class="max-w-xs mx-auto pt-20">
             <button @click="showLogoutModal = true" class="w-full py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 active:bg-red-600 active:text-white transition-all">Sign Out Admin Session</button>
@@ -167,7 +182,7 @@
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
-          <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase italic apple-gradient text-center">New Asset</h2>
+          <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">New Asset</h2>
           <input v-model="newBookTitle" type="text" placeholder="Entry Title" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4" />
           <button @click="addBook" :disabled="!newBookTitle" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Initialize Entry</button>
           <button @click="showAddModal = false" class="w-full py-4 text-zinc-600 font-bold uppercase text-[9px] mt-1">Cancel</button>
@@ -178,7 +193,7 @@
     <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter italic leading-none">Terminate?</h3>
+          <h3 class="text-xl font-black mb-6 uppercase tracking-tighter leading-none">Terminate?</h3>
           <div class="flex gap-3">
             <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
             <button @click="executeLogout" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Yes</button>
@@ -202,26 +217,51 @@ const activeTab = ref('dashboard');
 const books = ref([]);
 const notifications = ref([]);
 const borrowers = ref([]);
+const historyLogs = ref([]); // Dedicated ref for the history collection
 const showAddModal = ref(false);
 const showLogoutModal = ref(false);
 const newBookTitle = ref('');
 
 onMounted(() => {
+  // 1. Fetch Books
   onSnapshot(collection(db, "books"), (s) => {
     books.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
-  onSnapshot(collection(db, "notifications"), (s) => {
+
+  // 2. Fetch Notifications (Pending Requests)
+  onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => {
     notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
+
+  // 3. Fetch History (System Logs)
+  // FIX: Explicitly fetching from the 'history' collection as confirmed
+  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
+    historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    console.log("History records found:", historyLogs.value.length);
+  });
+
+  // 4. Fetch Active Borrowers
   onSnapshot(collection(db, "borrowers"), (s) => {
     borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
   });
 });
 
 const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
-const allLogs = computed(() => notifications.value.filter(r => r.status !== 'pending').sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
 
-const formatTimestamp = (ts) => ts ? new Date(ts.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+const getLogBadgeClass = (status) => {
+  if (!status) return 'bg-zinc-900 text-zinc-500';
+  const s = status.toLowerCase();
+  if (s.includes('approve') || s.includes('returned')) return 'bg-green-500/10 text-green-500';
+  if (s.includes('decline')) return 'bg-red-500/10 text-red-500';
+  return 'bg-zinc-900 text-zinc-400';
+};
+
+const formatTimestamp = (ts) => {
+  if (!ts) return 'Archived';
+  const date = new Date(ts.seconds * 1000);
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + 
+         date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
 
 const addBook = async () => {
   if (!newBookTitle.value) return;
@@ -231,27 +271,52 @@ const addBook = async () => {
 };
 
 const deleteBook = async (id) => {
-  if (confirm('Delete asset?')) await deleteDoc(doc(db, "books", id));
+  if (confirm('Delete asset permanently?')) await deleteDoc(doc(db, "books", id));
 };
 
 const approveRequest = async (req) => {
-  // 1. Update notification status
+  // Update Notification
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
-  // 2. Add to borrowers collection
+  
+  // Add to Borrowers
   await addDoc(collection(db, "borrowers"), {
     ...req,
     status: 'approved',
     approvedAt: serverTimestamp()
   });
+
+  // Log to History
+  await addDoc(collection(db, "history"), {
+    bookTitle: req.bookTitle,
+    userEmail: req.userEmail,
+    status: 'approved',
+    createdAt: serverTimestamp()
+  });
 };
 
 const declineRequest = async (id) => {
+  const req = notifications.value.find(n => n.id === id);
   await updateDoc(doc(db, "notifications", id), { status: 'declined' });
+  
+  // Log to History
+  await addDoc(collection(db, "history"), {
+    bookTitle: req?.bookTitle || 'Unknown',
+    userEmail: req?.userEmail || 'Unknown',
+    status: 'declined',
+    createdAt: serverTimestamp()
+  });
 };
 
 const markAsReturned = async (person) => {
-  // Tanggalin sa borrowers list pero iwan sa logs (notifications)
   await deleteDoc(doc(db, "borrowers", person.id));
+  
+  // Log Return to History
+  await addDoc(collection(db, "history"), {
+    bookTitle: person.bookTitle,
+    userEmail: person.userEmail,
+    status: 'returned',
+    createdAt: serverTimestamp()
+  });
 };
 
 const executeLogout = async () => {
@@ -261,6 +326,7 @@ const executeLogout = async () => {
 </script>
 
 <style scoped>
+/* HEADERS NO LONGER ITALIC */
 .apple-gradient {
   background: linear-gradient(180deg, #ffffff 0%, #444444 100%);
   -webkit-background-clip: text;
