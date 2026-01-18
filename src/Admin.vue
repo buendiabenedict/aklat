@@ -51,6 +51,7 @@
         </div>
         
         <div class="flex items-center gap-4">
+          <button @click="showLogoutModal = true" class="px-3 py-2 bg-red-600/10 text-red-500 rounded-lg font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/20">Log Out</button>
           <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'text-white' : 'text-zinc-500'" class="transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -214,7 +215,7 @@
                 </a>
               </div>
 
-              <button @click="showLogoutModal = true" class="w-full py-6 bg-red-600/10 text-red-500 rounded-[2rem] font-black uppercase text-[12px] tracking-widest active:scale-95 transition-all border border-red-500/20">Log Out System</button>
+
             </div>
           </div>
 
