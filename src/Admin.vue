@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden pb-40 text-left">
+  <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden text-left">
     
     <!-- WELCOME SEQUENCE -->
     <transition name="welcome-fade" @after-leave="onWelcomeFinished">
@@ -13,7 +13,7 @@
     </transition>
 
     <!-- UI LAYER (Only shows after welcome fade) -->
-    <div v-if="contentVisible" class="animate-content-in">
+    <div v-if="contentVisible" class="animate-content-in relative min-h-screen pb-32">
       <!-- Top Header -->
       <header class="p-6 flex justify-between items-center relative z-20">
         <div class="flex items-center gap-3">
@@ -63,10 +63,17 @@
               <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
                 <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
+                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Asset Count</p>
               </div>
               <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
                 <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
+                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Active Sessions</p>
+              </div>
+              <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem] col-span-2">
+                <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Community Strength</p>
+                <p class="text-4xl font-bold tracking-tighter">{{ users.length }}</p>
+                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Registered Members</p>
               </div>
             </div>
             
@@ -74,8 +81,8 @@
               <div @click="activeTab = 'requests'" v-if="pendingRequests.length > 0" class="bg-white p-8 rounded-[2.5rem] cursor-pointer active:scale-[0.98] transition-all">
                 <div class="flex justify-between items-center text-black">
                   <div>
-                    <h3 class="text-2xl font-black tracking-tighter uppercase mb-1">Action Required</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">{{ pendingRequests.length }} authorizations pending</p>
+                    <h3 class="text-2xl font-black tracking-tighter uppercase mb-1 text-black">Action Required</h3>
+                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-60 text-black">{{ pendingRequests.length }} authorizations pending</p>
                   </div>
                   <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black">
                     {{ pendingRequests.length }}
@@ -211,6 +218,18 @@
               <h3 class="text-2xl font-black uppercase tracking-tighter mb-1">Administrator</h3>
               <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] mb-8">Authorized Access Only</p>
               
+              <!-- Profile Stats Integration -->
+              <div class="grid grid-cols-2 gap-2 mb-10">
+                 <div class="p-4 bg-zinc-950/50 border border-white/5 rounded-2xl">
+                    <p class="text-[8px] font-black uppercase text-zinc-600 tracking-widest mb-1">Privilege</p>
+                    <p class="text-xs font-bold text-white uppercase tracking-tighter">Root Level</p>
+                 </div>
+                 <div class="p-4 bg-zinc-950/50 border border-white/5 rounded-2xl">
+                    <p class="text-[8px] font-black uppercase text-zinc-600 tracking-widest mb-1">Status</p>
+                    <p class="text-xs font-bold text-emerald-500 uppercase tracking-tighter">Encrypted</p>
+                 </div>
+              </div>
+
               <button @click="showLogoutModal = true" class="w-full py-6 bg-zinc-950 text-red-500 rounded-[2rem] font-black uppercase text-[12px] tracking-widest active:scale-95 transition-all border border-red-500/10 hover:bg-red-500 hover:text-white">
                 Terminate Session
               </button>
@@ -246,11 +265,11 @@
         </transition>
       </main>
 
-      <!-- NAVIGATION BAR -->
-      <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[360px] px-6">
-        <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl">
+      <!-- NAVIGATION BAR (Fixed Overlay) -->
+      <div class="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
+        <nav class="bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-[400px] pointer-events-auto">
           <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" :key="tab" @click="activeTab = tab" 
-                  :class="activeTab === tab ? 'bg-white text-black scale-95' : 'text-zinc-500'" 
+                  :class="activeTab === tab ? 'bg-white text-black scale-95' : 'text-zinc-500 hover:text-zinc-300'" 
                   class="w-10 h-10 rounded-full flex items-center justify-center transition-all relative">
             
             <svg v-if="tab === 'dashboard'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -304,8 +323,8 @@
       </div>
     </transition>
 
+    <!-- Modal para sa pagdagdag ng libro -->
     <transition name="fade">
-      <!-- Add Modal -->
       <div v-if="showAddModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
           <h2 class="text-2xl font-bold tracking-tighter mb-8 uppercase text-center">Register Asset</h2>
