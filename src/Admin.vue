@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden text-left">
+  <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden text-left relative">
     
     <!-- WELCOME SEQUENCE -->
     <transition name="welcome-fade" @after-leave="onWelcomeFinished">
@@ -12,33 +12,32 @@
       </div>
     </transition>
 
+    <!-- NAVIGATION BAR (ROOT LEVEL FIXED OVERLAY) -->
+    <!-- Inilabas ko ito sa UI Layer para hindi maapektuhan ng scroll ng main content -->
+    <div v-if="contentVisible" class="fixed bottom-8 left-0 right-0 z-[200] flex justify-center px-6 pointer-events-none">
+      <nav class="bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] w-full max-w-md pointer-events-auto animate-nav-in">
+        <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" 
+                :key="tab" @click="activeTab = tab" 
+                :class="activeTab === tab ? 'bg-white text-black scale-95 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'" 
+                class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group">
+          
+          <svg v-if="tab === 'dashboard'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          <svg v-if="tab === 'inventory'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <svg v-if="tab === 'requests'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          <svg v-if="tab === 'borrowers'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+          <svg v-if="tab === 'community'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
+          <svg v-if="tab === 'logs'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          
+          <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-zinc-900">
+            {{ pendingRequests.length }}
+          </div>
+        </button>
+      </nav>
+    </div>
+
     <!-- UI LAYER -->
     <div v-if="contentVisible" class="animate-content-in relative min-h-screen">
       
-      <!-- NAVIGATION BAR (Fixed Floating Overlay) -->
-      <!-- 'fixed' handles the overlay behavior so it stays on top of all pages regardless of scroll -->
-      <div class="fixed bottom-8 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none">
-        <nav class="bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] w-full max-w-md pointer-events-auto">
-          <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" 
-                  :key="tab" @click="activeTab = tab" 
-                  :class="activeTab === tab ? 'bg-white text-black scale-95 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'" 
-                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 relative group">
-            
-            <svg v-if="tab === 'dashboard'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            <svg v-if="tab === 'inventory'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-            <svg v-if="tab === 'requests'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            <svg v-if="tab === 'borrowers'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            <svg v-if="tab === 'community'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
-            <svg v-if="tab === 'logs'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            
-            <!-- Badge for pending -->
-            <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-zinc-900">
-              {{ pendingRequests.length }}
-            </div>
-          </button>
-        </nav>
-      </div>
-
       <!-- Top Header -->
       <header class="p-6 flex justify-between items-center relative z-20">
         <div class="flex items-center gap-3">
@@ -62,7 +61,7 @@
         </div>
       </header>
 
-      <main class="max-w-5xl mx-auto px-6 pb-40 relative z-10">
+      <main class="max-w-5xl mx-auto px-6 pb-48 relative z-10">
         <transition name="page" mode="out-in">
           
           <!-- DASHBOARD TAB -->
@@ -142,13 +141,12 @@
             </transition-group>
           </div>
 
-          <!-- REQUESTS TAB -->
+          <!-- (Other tabs remain the same...) -->
           <div v-else-if="activeTab === 'requests'" key="requests" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Queue Management</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Approvals</h2>
             </section>
-
             <div v-if="pendingRequests.length === 0" class="py-20 text-center">
               <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">Queue is Clear</p>
             </div>
@@ -164,38 +162,30 @@
             </transition-group>
           </div>
 
-          <!-- BORROWERS TAB -->
           <div v-else-if="activeTab === 'borrowers'" key="borrowers" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Live Tracking</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Borrowers</h2>
             </section>
-            
             <div v-if="borrowers.length === 0" class="py-20 text-center">
               <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">No Active Loans</p>
             </div>
             <transition-group name="list" tag="div" class="space-y-3">
-              <div v-for="person in borrowers" :key="person.id" 
-                   class="p-6 bg-zinc-900 rounded-[2rem] flex justify-between items-center border border-white/5">
+              <div v-for="person in borrowers" :key="person.id" class="p-6 bg-zinc-900 rounded-[2rem] flex justify-between items-center border border-white/5">
                 <div class="flex-1">
                   <h3 class="text-base font-black uppercase tracking-tight mb-1">{{ person.bookTitle }}</h3>
                   <p class="text-[9px] font-bold uppercase opacity-40 tracking-widest">{{ person.userEmail }}</p>
                 </div>
-                <button @click="handleReturn(person)" 
-                        class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all">
-                  Return
-                </button>
+                <button @click="handleReturn(person)" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-black active:scale-95 transition-all">Return</button>
               </div>
             </transition-group>
           </div>
 
-          <!-- COMMUNITY TAB -->
           <div v-else-if="activeTab === 'community'" key="community" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">User Network</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Community</h2>
             </section>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div v-for="user in users" :key="user.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[2rem] flex items-center gap-4">
                 <div class="w-12 h-12 bg-zinc-950 rounded-full flex items-center justify-center text-zinc-500 border border-white/10">
@@ -209,49 +199,26 @@
             </div>
           </div>
 
-          <!-- PROFILE TAB -->
           <div v-else-if="activeTab === 'profile'" key="profile" class="pt-4 space-y-8">
             <section>
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Profile</h2>
             </section>
-
             <div class="bg-zinc-900 border border-white/5 p-10 rounded-[3rem] text-center">
               <div class="w-24 h-24 bg-zinc-950 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
                  <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </div>
               <h3 class="text-2xl font-black uppercase tracking-tighter mb-1">Administrator</h3>
               <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] mb-8">System Access Node</p>
-              
-              <div class="grid grid-cols-2 gap-2 mb-10">
-                 <div class="p-5 bg-zinc-950/50 border border-white/5 rounded-[1.5rem]">
-                    <p class="text-[8px] font-black uppercase text-zinc-600 tracking-widest mb-1">Access Tier</p>
-                    <p class="text-xs font-bold text-white uppercase tracking-tighter">Level Root</p>
-                 </div>
-                 <div class="p-5 bg-zinc-950/50 border border-white/5 rounded-[1.5rem]">
-                    <p class="text-[8px] font-black uppercase text-zinc-600 tracking-widest mb-1">Signal Status</p>
-                    <p class="text-xs font-bold text-emerald-500 uppercase tracking-tighter">Secure</p>
-                 </div>
-              </div>
-
-              <button @click="showLogoutModal = true" class="w-full py-6 bg-red-600/10 text-red-500 rounded-[2rem] font-black uppercase text-[12px] tracking-widest active:scale-95 transition-all border border-red-500/20">
-                Log Out System
-              </button>
+              <button @click="showLogoutModal = true" class="w-full py-6 bg-red-600/10 text-red-500 rounded-[2rem] font-black uppercase text-[12px] tracking-widest active:scale-95 transition-all border border-red-500/20">Log Out System</button>
             </div>
           </div>
 
-          <!-- HISTORY TAB -->
           <div v-else-if="activeTab === 'logs'" key="logs" class="pt-4">
-            <section class="mb-8 flex justify-between items-end">
-              <div>
-                <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Audit Record</p>
-                <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">History</h2>
-              </div>
+            <section class="mb-8">
+              <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Audit Record</p>
+              <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">History</h2>
             </section>
-
-            <div v-if="historyLogs.length === 0" class="py-20 text-center">
-              <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">No Logs Found</p>
-            </div>
             <div class="space-y-2">
               <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[1.5rem] flex justify-between items-center">
                 <div>
@@ -262,15 +229,14 @@
               </div>
             </div>
           </div>
-
         </transition>
       </main>
     </div>
 
     <!-- MODALS -->
+    <!-- (Modals remain at root level with high Z-index) -->
     <transition name="fade">
-      <!-- Add Book Modal -->
-      <div v-if="showAddModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
+      <div v-if="showAddModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
           <h2 class="text-2xl font-bold tracking-tighter mb-8 uppercase text-center">Add New Asset</h2>
           <div class="space-y-4 mb-10">
@@ -285,8 +251,7 @@
     </transition>
 
     <transition name="fade">
-      <!-- Logout Modal -->
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
           <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase">Log Out?</h2>
           <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">Session data will be cleared.</p>
@@ -298,9 +263,8 @@
       </div>
     </transition>
 
-    <!-- Delete Confirmation Modal -->
     <transition name="fade">
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
         <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
           <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase">Delete Asset?</h2>
           <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">This action cannot be undone.</p>
@@ -353,20 +317,13 @@ const onWelcomeFinished = () => {
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
-
   setTimeout(() => { showWelcome.value = false; }, 2000);
 
   onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
-  onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => {
-    notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
-  });
-  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
-    historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
-  });
-  onSnapshot(collection(db, "borrowers"), (s) => {
-    borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() }));
-  });
+  onSnapshot(query(collection(db, "notifications"), orderBy("createdAt", "desc")), (s) => notifications.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
+  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => historyLogs.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
+  onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
 });
 
 onUnmounted(() => clearInterval(clockInterval));
@@ -375,18 +332,12 @@ const pendingRequests = computed(() => notifications.value.filter(r => r.status 
 
 const addBook = async () => {
   if (!newBook.value.title.trim()) return;
-  await addDoc(collection(db, "books"), { 
-    title: newBook.value.title.toUpperCase(), 
-    createdAt: serverTimestamp() 
-  });
+  await addDoc(collection(db, "books"), { title: newBook.value.title.toUpperCase(), createdAt: serverTimestamp() });
   newBook.value.title = '';
   showAddModal.value = false;
 };
 
-const confirmDelete = (book) => {
-  bookToDelete.value = book;
-  showDeleteModal.value = true;
-};
+const confirmDelete = (book) => { bookToDelete.value = book; showDeleteModal.value = true; };
 
 const deleteBook = async () => {
   if (!bookToDelete.value) return;
@@ -397,42 +348,15 @@ const deleteBook = async () => {
 
 const handleApproval = async (req, isApproved) => {
   const status = isApproved ? 'approved' : 'declined';
-  
-  // Update Notification
   await updateDoc(doc(db, "notifications", req.id), { status });
-
-  // Update History
-  await addDoc(collection(db, "history"), {
-    bookTitle: req.bookTitle,
-    userEmail: req.userEmail,
-    userId: req.userId,
-    status: status,
-    createdAt: serverTimestamp()
-  });
-
+  await addDoc(collection(db, "history"), { bookTitle: req.bookTitle, userEmail: req.userEmail, userId: req.userId, status: status, createdAt: serverTimestamp() });
   if (isApproved) {
-    // Add to active borrowers
-    await addDoc(collection(db, "borrowers"), {
-      bookId: req.bookId,
-      bookTitle: req.bookTitle,
-      userEmail: req.userEmail,
-      userId: req.userId,
-      borrowedAt: serverTimestamp()
-    });
+    await addDoc(collection(db, "borrowers"), { bookId: req.bookId, bookTitle: req.bookTitle, userEmail: req.userEmail, userId: req.userId, borrowedAt: serverTimestamp() });
   }
 };
 
 const handleReturn = async (person) => {
-  // Add to history
-  await addDoc(collection(db, "history"), {
-    bookTitle: person.bookTitle,
-    userEmail: person.userEmail,
-    userId: person.userId,
-    status: 'returned',
-    createdAt: serverTimestamp()
-  });
-
-  // Remove from borrowers
+  await addDoc(collection(db, "history"), { bookTitle: person.bookTitle, userEmail: person.userEmail, userId: person.userId, status: 'returned', createdAt: serverTimestamp() });
   await deleteDoc(doc(db, "borrowers", person.id));
 };
 
@@ -446,6 +370,15 @@ const getLogBadgeClass = (status) => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+@keyframes navIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-nav-in {
+  animation: navIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: 0.5s;
+}
 
 @keyframes contentIn {
   from { opacity: 0; transform: translateY(10px); }
