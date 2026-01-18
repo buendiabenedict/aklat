@@ -10,10 +10,10 @@
         </div>
         <div>
           <h1 class="text-sm font-bold tracking-tighter uppercase leading-none">Admin Central</h1>
-          <p class="text-[10px] font-mono text-blue-500 mt-1 uppercase tracking-widest">{{ currentTime }}</p>
+          <p class="text-[10px] font-black text-blue-500 mt-1 uppercase tracking-widest">{{ currentTime }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
+      <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5 shadow-inner">
         <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
         <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">System Live</span>
       </div>
@@ -55,7 +55,7 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Inventory</h2>
             </div>
             <div class="flex gap-2">
-              <button v-if="selectedBooks.length > 0" @click="deleteSelectedBooks" class="w-12 h-12 bg-red-600/20 text-red-500 border border-red-500/20 rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
+              <button v-if="selectedBooks.length > 0" @click="deleteSelectedBooks" class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
               </button>
               <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
@@ -63,9 +63,8 @@
               </button>
             </div>
           </section>
-          
           <div class="space-y-2">
-            <div v-for="book in books" :key="book.id" @click="toggleSelectBook(book.id)" :class="selectedBooks.includes(book.id) ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-zinc-950'" class="p-4 rounded-xl flex items-center justify-between border transition-all">
+            <div v-for="book in books" :key="book.id" @click="toggleSelectBook(book.id)" :class="selectedBooks.includes(book.id) ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-zinc-950'" class="p-4 rounded-xl flex items-center justify-between border transition-all cursor-pointer">
               <div class="flex items-center gap-4">
                 <div class="w-4 h-4 rounded border border-zinc-700 flex items-center justify-center" :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : ''">
                   <svg v-if="selectedBooks.includes(book.id)" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path d="M5 13l4 4L19 7" /></svg>
@@ -84,6 +83,9 @@
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Queue</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Requests</h2>
           </section>
+          <div v-if="pendingRequests.length === 0" class="p-16 border border-dashed border-white/10 rounded-[2rem] text-center">
+            <p class="text-zinc-800 font-bold uppercase text-[9px] tracking-[0.3em]">Clear Queue</p>
+          </div>
           <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-950 border border-white/10 p-6 rounded-3xl mb-4">
             <div class="flex justify-between items-start mb-4">
               <div>
@@ -103,7 +105,6 @@
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Real-time Tracking</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
-
           <div v-for="person in borrowers" :key="person.id" class="bg-white text-black p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] border-blue-600">
             <div class="max-w-[60%]">
               <h3 class="text-sm font-black uppercase tracking-tighter leading-none truncate">{{ person.bookTitle }}</h3>
@@ -113,7 +114,7 @@
                 <span class="text-[10px] font-black font-mono">{{ getCountdown(person.approvedAt) }}</span>
               </div>
             </div>
-            <button @click="markAsReturned(person)" class="px-4 py-2 bg-black text-white rounded-lg text-[8px] font-black uppercase tracking-widest">Returned</button>
+            <button @click="markAsReturned(person)" class="px-4 py-2 bg-black text-white rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg">Returned</button>
           </div>
         </div>
 
@@ -122,11 +123,10 @@
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">User Base</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Community</h2>
           </section>
-
           <div class="space-y-3">
             <div v-for="user in users" :key="user.id" class="bg-zinc-950 border border-white/5 p-4 rounded-2xl flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-blue-500 border border-white/5">
-                {{ user.email?.[0].toUpperCase() }}
+              <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-blue-500 border border-white/5 uppercase">
+                {{ user.email?.[0] }}
               </div>
               <div>
                 <p class="text-[11px] font-black uppercase tracking-tighter">{{ user.email }}</p>
@@ -143,12 +143,14 @@
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">History</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">System Logs</h2>
           </section>
-          <div v-for="log in historyLogs" :key="log.id" class="p-4 bg-zinc-950 border border-white/5 rounded-xl mb-2 flex justify-between items-center">
-            <div>
-              <p class="text-[10px] font-bold uppercase truncate max-w-[150px]">{{ log.bookTitle }}</p>
-              <p class="text-[8px] text-zinc-500">{{ log.userEmail }}</p>
+          <div class="space-y-2">
+            <div v-for="log in historyLogs" :key="log.id" class="p-4 bg-zinc-950 border border-white/5 rounded-xl flex justify-between items-center">
+              <div>
+                <p class="text-[10px] font-bold uppercase truncate max-w-[150px]">{{ log.bookTitle }}</p>
+                <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-bold">{{ log.userEmail }}</p>
+              </div>
+              <span class="text-[8px] px-2 py-0.5 rounded font-black uppercase tracking-widest" :class="getLogBadgeClass(log.status)">{{ log.status }}</span>
             </div>
-            <span class="text-[8px] px-2 py-0.5 rounded bg-zinc-900 font-bold uppercase tracking-widest">{{ log.status }}</span>
           </div>
         </div>
 
@@ -157,17 +159,23 @@
             <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Profile</h2>
           </section>
-          <div class="w-24 h-24 bg-blue-600 border border-blue-400 mx-auto rounded-[2.5rem] flex items-center justify-center text-3xl font-black mb-4">A</div>
+          <div class="w-24 h-24 bg-blue-600 border border-blue-400 mx-auto rounded-[2.5rem] flex items-center justify-center text-3xl font-black mb-4 shadow-2xl">A</div>
           <h2 class="text-2xl font-bold tracking-tighter uppercase">{{ auth.currentUser?.email }}</h2>
-          <button @click="showLogoutModal = true" class="mt-20 w-full max-w-xs py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 transition-all">Sign Out Admin Session</button>
+          <button @click="showLogoutModal = true" class="mt-20 w-full max-w-xs py-4 bg-zinc-900 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-red-500/10 active:bg-red-600 active:text-white transition-all">Sign Out Admin Session</button>
         </div>
 
       </transition>
     </main>
 
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[400px] px-4">
-      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl overflow-x-auto">
-        <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 min-w-[40px] rounded-full flex items-center justify-center transition-all">
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[420px] px-4">
+      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl overflow-x-auto no-scrollbar">
+        <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 min-w-[40px] rounded-full flex items-center justify-center transition-all relative">
+          
+          <div v-if="tab === 'requests' && pendingRequests.length > 0" 
+               class="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-600 rounded-full border border-black flex items-center justify-center px-1 animate-bounce z-10 shadow-lg">
+            <span class="text-[8px] font-black text-white leading-none">{{ pendingRequests.length }}</span>
+          </div>
+
           <svg v-if="tab === 'dashboard'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
           <svg v-if="tab === 'inventory'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
           <svg v-if="tab === 'requests'" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
@@ -225,30 +233,29 @@ const showLogoutModal = ref(false);
 const batchTitleInput = ref('');
 const currentTime = ref('');
 
-// Clock Timer
+// 12-Hour Clock
 let clockInterval;
 const updateClock = () => {
   const now = new Date();
-  currentTime.value = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  currentTime.value = now.toLocaleTimeString('en-US', { 
+    hour12: true, hour: '2-digit', minute: '2-digit' 
+  });
 };
 
-// Borrower Timer Logic
+// Countdown Logic
 const getCountdown = (approvedAt) => {
   if (!approvedAt) return "00:00:00";
   const approvedTime = approvedAt.seconds * 1000;
-  const returnTime = approvedTime + (24 * 60 * 60 * 1000); // 24 hours
+  const returnTime = approvedTime + (24 * 60 * 60 * 1000); 
   const now = new Date().getTime();
   const diff = returnTime - now;
-
   if (diff <= 0) return "DUE NOW";
-  
   const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
   const m = Math.floor((diff / (1000 * 60)) % 60);
   const s = Math.floor((diff / 1000) % 60);
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-// Re-render timer every second
 const timerRef = ref(0);
 let countdownInterval;
 
@@ -271,7 +278,13 @@ onUnmounted(() => {
 
 const pendingRequests = computed(() => notifications.value.filter(r => r.status === 'pending'));
 
-// Batch Add
+const getLogBadgeClass = (status) => {
+  const s = status?.toLowerCase() || '';
+  if (s.includes('approve') || s.includes('returned')) return 'text-green-500 bg-green-500/10';
+  if (s.includes('decline')) return 'text-red-500 bg-red-500/10';
+  return 'text-zinc-500 bg-zinc-900';
+};
+
 const batchAddBooks = async () => {
   const titles = batchTitleInput.value.split('\n').filter(t => t.trim() !== '');
   const batch = writeBatch(db);
@@ -284,7 +297,6 @@ const batchAddBooks = async () => {
   showAddModal.value = false;
 };
 
-// Selection Logic
 const toggleSelectBook = (id) => {
   const index = selectedBooks.value.indexOf(id);
   if (index > -1) selectedBooks.value.splice(index, 1);
@@ -292,16 +304,13 @@ const toggleSelectBook = (id) => {
 };
 
 const deleteSelectedBooks = async () => {
-  if (!confirm(`Delete ${selectedBooks.value.length} books permanently?`)) return;
+  if (!confirm(`Delete ${selectedBooks.value.length} books?`)) return;
   const batch = writeBatch(db);
-  selectedBooks.value.forEach(id => {
-    batch.delete(doc(db, "books", id));
-  });
+  selectedBooks.value.forEach(id => batch.delete(doc(db, "books", id)));
   await batch.commit();
   selectedBooks.value = [];
 };
 
-// Actions
 const approveRequest = async (req) => {
   await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
   await addDoc(collection(db, "borrowers"), { ...req, status: 'approved', approvedAt: serverTimestamp() });
@@ -323,11 +332,6 @@ const executeLogout = async () => {
   await signOut(auth);
   emit('logout');
 };
-
-const formatTimestamp = (ts) => {
-  if (!ts) return '...';
-  return new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
 </script>
 
 <style scoped>
@@ -336,9 +340,9 @@ const formatTimestamp = (ts) => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 .page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-::-webkit-scrollbar { display: none; }
 </style>
