@@ -10,7 +10,7 @@
         </div>
         <div>
           <h1 class="text-sm font-bold tracking-tighter uppercase leading-none">Admin Central</h1>
-          <p class="text-[10px] font-black text-blue-500 mt-1 uppercase tracking-widest">{{ currentTime }}</p>
+          <p class="text-[10px] font-black text-blue-500 mt-1 uppercase tracking-widest">{{ currentTimeDisplay }}</p>
         </div>
       </div>
       <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5 shadow-inner">
@@ -91,7 +91,7 @@
               <div>
                 <h3 class="text-lg font-bold tracking-tighter uppercase leading-none">{{ req.bookTitle }}</h3>
                 <p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-1">{{ req.userEmail }}</p>
-                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Requested Return: {{ req.returnDate }}</p>
+                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Scheduled Return: {{ req.returnDate }}</p>
               </div>
             </div>
             <div class="flex gap-2">
@@ -107,23 +107,24 @@
             <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Borrowers</h2>
           </section>
           <div v-for="person in borrowers" :key="person.id" 
-               :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
-               class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-all duration-500">
+               :class="isOverdue(person.returnSchedule) ? 'bg-red-600 text-white border-red-400' : 'bg-white text-black border-blue-600'"
+               class="p-5 rounded-2xl mb-3 flex justify-between items-center shadow-xl border-l-[6px] transition-all">
             <div class="max-w-[60%]">
               <h3 class="text-sm font-black uppercase tracking-tighter leading-none truncate">{{ person.bookTitle }}</h3>
-              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="getRemainingMs(person.returnSchedule) <= 0 ? 'text-white/70' : 'text-zinc-500'">
+              <p class="text-[8px] font-bold uppercase mt-1 truncate" :class="isOverdue(person.returnSchedule) ? 'text-white/70' : 'text-zinc-500'">
                 {{ person.userEmail }}
               </p>
-              <div class="mt-2 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white' : 'bg-blue-600'"></span>
-                <span class="text-[10px] font-black font-mono tracking-tighter">
-                  {{ formatCountdown(person.returnSchedule) }}
-                </span>
+              <div class="mt-2 flex flex-col gap-0.5">
+                <p class="text-[10px] font-black uppercase tracking-tighter" :class="isOverdue(person.returnSchedule) ? 'text-white' : 'text-blue-600'">
+                   {{ isOverdue(person.returnSchedule) ? '⚠️ OVERDUE' : '📅 Return Date' }}
+                </p>
+                <p class="text-[14px] font-black font-mono tracking-tighter">
+                  {{ person.returnSchedule }} @ 7:30 AM
+                </p>
               </div>
-              <p class="text-[7px] font-bold uppercase mt-1 opacity-50 tracking-widest">Due at 7:30 AM</p>
             </div>
             <button @click="confirmReturn(person)" 
-                    :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white text-red-600' : 'bg-black text-white'"
+                    :class="isOverdue(person.returnSchedule) ? 'bg-white text-red-600' : 'bg-black text-white'"
                     class="px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
               Returned
             </button>
@@ -183,7 +184,7 @@
     </main>
 
     <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[420px] px-4">
-      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl overflow-x-auto no-scrollbar">
+      <nav class="bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl">
         <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs', 'profile']" :key="tab" @click="activeTab = tab" :class="activeTab === tab ? 'bg-white text-black scale-110' : 'text-zinc-600'" class="w-10 h-10 min-w-[40px] rounded-full flex items-center justify-center transition-all relative">
           <div v-if="tab === 'requests' && pendingRequests.length > 0" class="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-600 rounded-full border border-black flex items-center justify-center px-1 animate-bounce z-10 shadow-lg">
             <span class="text-[8px] font-black text-white leading-none">{{ pendingRequests.length }}</span>
@@ -218,7 +219,7 @@
 
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
-        <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-sm w-full shadow-2xl">
+        <div class="bg-zinc-950 border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl">
           <h2 class="text-xl font-bold tracking-tighter mb-6 uppercase apple-gradient text-center">Batch Initialize</h2>
           <textarea v-model="batchTitleInput" placeholder="Enter book titles (one per line)" rows="5" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4 text-xs resize-none"></textarea>
           <button @click="batchAddBooks" :disabled="!batchTitleInput" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Add to Repository</button>
@@ -278,42 +279,25 @@ const showLogoutModal = ref(false);
 
 const targetBorrower = ref(null);
 const batchTitleInput = ref('');
-const currentTime = ref('');
+const currentTimeDisplay = ref('');
 
-const timerRef = ref(Date.now());
 let clockInterval;
+
+// 🛠️ SIMPLE STATUS CHECK
+const isOverdue = (schedule) => {
+  if (!schedule) return false;
+  const now = new Date();
+  const target = new Date(schedule.replace(/-/g, '/'));
+  target.setHours(7, 30, 0, 0); 
+  return now.getTime() > target.getTime();
+};
+
+const hasOverdue = computed(() => borrowers.value.some(p => isOverdue(p.returnSchedule)));
 
 const updateClock = () => {
   const now = new Date();
-  timerRef.value = now.getTime();
-  currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
+  currentTimeDisplay.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
 };
-
-// 🛠️ CUSTOM TIME LOGIC (FORCE TO 7:30 AM)
-const getRemainingMs = (schedule) => {
-  if (!schedule) return 0;
-  // Convert date string to object
-  const target = new Date(schedule.replace(/-/g, '/'));
-  
-  // ETO YUNG BINAGO: I-force natin sa 7:30 AM
-  target.setHours(7, 30, 0, 0); 
-  
-  return target.getTime() - timerRef.value;
-};
-
-const formatCountdown = (schedule) => {
-  const diff = getRemainingMs(schedule);
-  if (diff <= 0) return "OVERDUE / RETURN NOW";
-  
-  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((diff % (1000 * 60)) / 1000);
-  
-  return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
-};
-
-const hasOverdue = computed(() => borrowers.value.some(p => getRemainingMs(p.returnSchedule) <= 0));
 
 onMounted(() => {
   updateClock();
@@ -369,7 +353,7 @@ const approveRequest = async (req) => {
   try {
     await updateDoc(doc(db, "notifications", req.id), { 
       status: 'approved',
-      message: `Your request for "${req.bookTitle}" has been approved! Due at 7:30 AM.`,
+      message: `Your request for "${req.bookTitle}" has been approved! Due: ${req.returnDate} @ 7:30 AM.`,
       approvedAt: serverTimestamp() 
     });
 
@@ -448,7 +432,6 @@ const executeLogout = async () => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
 .page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
