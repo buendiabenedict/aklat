@@ -55,25 +55,17 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Inventory</h2>
             </div>
             <div class="flex gap-2">
-              <button v-if="selectedBooks.length > 0" @click="showDeleteModal = true" class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-              </button>
               <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
               </button>
             </div>
           </section>
           <div class="space-y-2">
-            <div v-for="book in books" :key="book.id" @click="toggleSelectBook(book.id)" :class="selectedBooks.includes(book.id) ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-zinc-950'" class="p-4 rounded-xl flex items-center justify-between border transition-all cursor-pointer">
-              <div class="flex items-center gap-4">
-                <div class="w-4 h-4 rounded border border-zinc-700 flex items-center justify-center" :class="selectedBooks.includes(book.id) ? 'bg-blue-500 border-blue-500' : ''">
-                  <svg v-if="selectedBooks.includes(book.id)" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path d="M5 13l4 4L19 7" /></svg>
-                </div>
+            <div v-for="book in books" :key="book.id" class="p-4 rounded-xl flex items-center justify-between border border-white/5 bg-zinc-950 transition-all">
                 <div>
                   <h3 class="text-sm font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
-                  <p class="text-[8px] text-zinc-600 uppercase mt-1 tracking-widest">UID: {{ book.id.slice(0,8) }}</p>
+                  <p class="text-[8px] text-zinc-600 uppercase mt-1 tracking-widest">ID: {{ book.id.slice(0,8) }}</p>
                 </div>
-              </div>
             </div>
           </div>
         </div>
@@ -258,7 +250,6 @@ const selectedBooks = ref([]);
 
 // Modals
 const showAddModal = ref(false);
-const showDeleteModal = ref(false);
 const showReturnModal = ref(false);
 const showLogoutModal = ref(false);
 
@@ -328,30 +319,29 @@ const batchAddBooks = async () => {
   showAddModal.value = false;
 };
 
-const toggleSelectBook = (id) => {
-  const idx = selectedBooks.value.indexOf(id);
-  if (idx > -1) selectedBooks.value.splice(idx, 1);
-  else selectedBooks.value.push(id);
-};
-
-// 🛠️ SIMPLE APPROVE: FIXED AND RELIABLE
+// 🛠️ FINAL FIX: SIGURADONG ISA LANG LILITAW SA USER SIDE
 const approveRequest = async (req) => {
   try {
-    // 1. Update ang existing notification sa Firestore
-    await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
+    // 1. I-update ang notification na nag-trigger ng request (Status: Pending -> Approved)
+    // Ito dapat ang notification na nakikita sa "Inbox" ng user side
+    await updateDoc(doc(db, "notifications", req.id), { 
+      status: 'approved',
+      message: `Your request for "${req.bookTitle}" has been approved!`,
+      approvedAt: serverTimestamp() 
+    });
 
-    // 2. I-record ang active borrower
+    // 2. I-record sa borrowers collection (Admin side tracking)
     await addDoc(collection(db, "borrowers"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
       userId: req.userId,
       originalRequestId: req.id,
-      returnSchedule: req.returnDate || '2026-01-25', // Fallback date if null
+      returnSchedule: req.returnDate,
       status: 'approved',
       approvedAt: serverTimestamp()
     });
 
-    // 3. I-log sa system history
+    // 3. I-log sa history
     await addDoc(collection(db, "history"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
@@ -359,17 +349,24 @@ const approveRequest = async (req) => {
       createdAt: serverTimestamp()
     });
 
-    console.log("Success: Request Approved! ✅");
+    console.log("Clean Approval Success! ✅");
   } catch (err) {
-    console.error("Critical Approval Error:", err);
-    alert("Error: " + err.message);
+    console.error("Approve error:", err);
   }
 };
 
 const declineRequest = async (id) => {
   const req = notifications.value.find(n => n.id === id);
-  await updateDoc(doc(db, "notifications", id), { status: 'declined' });
-  await addDoc(collection(db, "history"), { bookTitle: req?.bookTitle, userEmail: req?.userEmail, status: 'declined', createdAt: serverTimestamp() });
+  await updateDoc(doc(db, "notifications", id), { 
+    status: 'declined',
+    message: `Your request for "${req?.bookTitle}" was declined.`
+  });
+  await addDoc(collection(db, "history"), { 
+    bookTitle: req?.bookTitle, 
+    userEmail: req?.userEmail, 
+    status: 'declined', 
+    createdAt: serverTimestamp() 
+  });
 };
 
 const confirmReturn = (person) => {
@@ -382,12 +379,15 @@ const executeReturn = async () => {
   const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
 
   try {
+    // Tanggalin sa admin side
     await deleteDoc(doc(db, "borrowers", id));
 
+    // I-update yung original notif para maging archive na lang
     if (originalRequestId) {
       await updateDoc(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
     }
 
+    // New notification for user
     await addDoc(collection(db, "notifications"), {
       userId, bookTitle, userEmail,
       message: "The librarian set your book to returned.",
