@@ -1,6 +1,15 @@
+
 <template>
   <div class="min-h-screen bg-zinc-950 text-white font-ios selection:bg-white/20 overflow-x-hidden text-left relative">
     
+    <!-- AMBIENT BACKGROUND: FLOATING BLINKING CIRCLES -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div v-for="i in 20" :key="i" 
+           class="ambient-circle" 
+           :style="getCircleStyle(i)">
+      </div>
+    </div>
+
     <!-- WELCOME SEQUENCE -->
     <transition name="welcome-fade" @after-leave="onWelcomeFinished">
       <div v-if="showWelcome" class="fixed inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-center p-6">
@@ -35,7 +44,7 @@
     </div>
 
     <!-- UI LAYER -->
-    <div v-if="contentVisible" class="animate-content-in relative min-h-screen">
+    <div v-if="contentVisible" class="animate-content-in relative min-h-screen z-10">
       
       <header class="p-6 flex justify-between items-center relative z-20">
         <div class="flex items-center gap-3">
@@ -71,15 +80,15 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
             </section>
             <div class="grid grid-cols-2 gap-3">
-              <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
+              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
                 <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
               </div>
-              <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
+              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
                 <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
               </div>
-              <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem] col-span-2">
+              <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-6 rounded-[2rem] col-span-2">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Community Strength</p>
                 <p class="text-4xl font-bold tracking-tighter">{{ users.length }}</p>
               </div>
@@ -104,7 +113,7 @@
             </section>
             <div v-if="books.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Assets Registered</div>
             <transition-group name="list" tag="div" class="space-y-3">
-              <div v-for="book in books" :key="book.id" @click="toggleSelection(book.id)" :class="selectedBooks.includes(book.id) ? 'border-white bg-zinc-800' : 'border-white/5 bg-zinc-900'" class="p-6 border rounded-[1.8rem] flex items-center justify-between transition-all cursor-pointer">
+              <div v-for="book in books" :key="book.id" @click="toggleSelection(book.id)" :class="selectedBooks.includes(book.id) ? 'border-white bg-zinc-800' : 'border-white/5 bg-zinc-900/50 backdrop-blur-sm'" class="p-6 border rounded-[1.8rem] flex items-center justify-between transition-all cursor-pointer">
                 <div class="flex items-center gap-4">
                    <div :class="selectedBooks.includes(book.id) ? 'bg-white text-black' : 'bg-zinc-950 text-zinc-700'" class="w-10 h-10 rounded-xl flex items-center justify-center border border-white/5 transition-colors">
                       <svg v-if="!selectedBooks.includes(book.id)" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
@@ -127,7 +136,7 @@
             </section>
             <div v-if="pendingRequests.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">Queue is Clear</div>
             <transition-group name="list" tag="div" class="space-y-4">
-              <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-900 border border-white/5 p-8 rounded-[2.5rem]">
+              <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-8 rounded-[2.5rem]">
                 <h3 class="text-xl font-bold tracking-tighter uppercase mb-1">{{ req.bookTitle }}</h3>
                 <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-6">{{ req.userEmail }}</p>
                 <div class="flex gap-3">
@@ -146,7 +155,7 @@
             </section>
             <div v-if="borrowers.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Active Loans</div>
             <transition-group name="list" tag="div" class="space-y-3">
-              <div v-for="person in borrowers" :key="person.id" class="p-6 bg-zinc-900 rounded-[2rem] flex justify-between items-center border border-white/5">
+              <div v-for="person in borrowers" :key="person.id" class="p-6 bg-zinc-900/50 backdrop-blur-sm rounded-[2rem] flex justify-between items-center border border-white/5">
                 <div class="flex-1">
                   <h3 class="text-base font-black uppercase tracking-tight mb-1">{{ person.bookTitle }}</h3>
                   <p class="text-[9px] font-bold uppercase opacity-40 tracking-widest">{{ person.userEmail }}</p>
@@ -163,7 +172,7 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Community</h2>
             </section>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="user in users" :key="user.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[2rem] flex items-center gap-4">
+              <div v-for="user in users" :key="user.id" class="p-6 bg-zinc-900/50 backdrop-blur-sm border border-white/5 rounded-[2rem] flex items-center gap-4">
                 <div class="w-12 h-12 bg-zinc-950 rounded-full flex items-center justify-center text-zinc-500 border border-white/10">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
@@ -181,7 +190,7 @@
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Profile</h2>
             </section>
-            <div class="bg-zinc-900 border border-white/5 p-10 rounded-[3rem] text-center">
+            <div class="bg-zinc-900/50 backdrop-blur-sm border border-white/5 p-10 rounded-[3rem] text-center">
               <div class="w-24 h-24 bg-zinc-950 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
                  <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </div>
@@ -227,7 +236,7 @@
             </section>
             <div v-if="historyLogs.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Transaction Records</div>
             <div class="space-y-2">
-              <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[1.5rem] flex justify-between items-center">
+              <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-900/50 backdrop-blur-sm border border-white/5 rounded-[1.5rem] flex justify-between items-center">
                 <div>
                   <p class="text-[12px] font-bold uppercase tracking-tight mb-1">{{ log.bookTitle }}</p>
                   <p class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">{{ log.userEmail }}</p>
@@ -353,6 +362,28 @@ const bookToDelete = ref(null);
 const selectedBooks = ref([]);
 const newBook = ref({ title: '' });
 const currentTimeDisplay = ref('');
+
+// Generate unique styles for ambient circles
+const getCircleStyle = (index) => {
+  const size = Math.random() * 200 + 100; // 100px to 300px
+  const left = Math.random() * 100;
+  const top = Math.random() * 100;
+  const delay = Math.random() * 5;
+  const duration = 10 + Math.random() * 20; // 10s to 30s
+  const moveX = (Math.random() - 0.5) * 100; // -50px to 50px
+  const moveY = (Math.random() - 0.5) * 100;
+
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    top: `${top}%`,
+    '--move-x': `${moveX}px`,
+    '--move-y': `${moveY}px`,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`
+  };
+};
 
 let clockInterval;
 const updateClock = () => {
@@ -481,6 +512,34 @@ const getLogBadgeClass = (status) => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* AMBIENT BACKGROUND ANIMATIONS */
+.ambient-circle {
+  position: absolute;
+  border-radius: 9999px;
+  background: white;
+  filter: blur(80px);
+  opacity: 0;
+  animation: float-blink infinite ease-in-out;
+}
+
+@keyframes float-blink {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.02;
+  }
+  25% {
+    opacity: 0.08;
+  }
+  50% {
+    transform: translate(var(--move-x), var(--move-y));
+    opacity: 0.03;
+  }
+  75% {
+    opacity: 0.06;
+  }
+}
+
 @keyframes navIn { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .animate-nav-in { animation: navIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.5s; }
 @keyframes contentIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
