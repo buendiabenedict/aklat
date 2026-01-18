@@ -29,19 +29,19 @@
           </section>
 
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl text-center">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total Books</p>
               <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
             </div>
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl text-center">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Users</p>
               <p class="text-3xl font-bold tracking-tighter text-blue-500">{{ users.length }}</p>
             </div>
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl text-center">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
               <p class="text-3xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
             </div>
-            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl">
+            <div class="bg-zinc-950 border border-white/5 p-6 rounded-3xl text-center">
               <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">History Logs</p>
               <p class="text-3xl font-bold tracking-tighter text-zinc-400">{{ historyLogs.length }}</p>
             </div>
@@ -55,7 +55,7 @@
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient">Inventory</h2>
             </div>
             <div class="flex gap-2">
-              <button v-if="selectedBooks.length > 0" @click="deleteSelectedBooks" class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+              <button v-if="selectedBooks.length > 0" @click="showDeleteModal = true" class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
               </button>
               <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
@@ -120,7 +120,7 @@
                 </span>
               </div>
             </div>
-            <button @click="markAsReturned(person)" 
+            <button @click="confirmReturn(person)" 
                     :class="getRemainingMs(person.returnSchedule) <= 0 ? 'bg-white text-red-600' : 'bg-black text-white'"
                     class="px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
               Returned
@@ -211,6 +211,40 @@
     </transition>
 
     <transition name="fade">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
+          <div class="w-16 h-16 bg-red-600/20 text-red-600 mx-auto rounded-full flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </div>
+          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Purge Data?</h3>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">You are about to delete {{ selectedBooks.length }} selected items from the repository.</p>
+          <div class="flex gap-3">
+            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">Abort</button>
+            <button @click="deleteSelectedBooks" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="showReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
+        <div v-if="targetBorrower" class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
+          <div class="w-16 h-16 bg-blue-600/20 text-blue-500 mx-auto rounded-full flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+          </div>
+          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Mark Returned?</h3>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">
+            Record return for "{{ targetBorrower.bookTitle }}" by {{ targetBorrower.userEmail }}.
+          </p>
+          <div class="flex gap-3">
+            <button @click="showReturnModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
+            <button @click="executeReturn" class="flex-1 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase">Yes</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
           <h3 class="text-xl font-black mb-6 uppercase tracking-tighter leading-none">Terminate?</h3>
@@ -240,8 +274,14 @@ const notifications = ref([]);
 const borrowers = ref([]);
 const historyLogs = ref([]);
 const selectedBooks = ref([]);
+
+// Modals
 const showAddModal = ref(false);
+const showDeleteModal = ref(false);
+const showReturnModal = ref(false);
 const showLogoutModal = ref(false);
+
+const targetBorrower = ref(null);
 const batchTitleInput = ref('');
 const currentTime = ref('');
 
@@ -256,36 +296,22 @@ const updateClock = () => {
   });
 };
 
-/**
- * 🛠️ THE ULTIMATE SYNC FIX
- * Ginawa nating "End of Day" ang target (23:59:59)
- * para mag-match sa 2-day logic ng User Side.
- */
 const getRemainingMs = (schedule) => {
   if (!schedule) return 0;
-  
-  // Gawing "2026/01/20" ang format
   const fixedDate = schedule.replace(/-/g, '/');
-  
-  // Pilitin na maging 11:59:59 PM para makuha ang buong araw
   const target = new Date(fixedDate);
   target.setHours(23, 59, 59, 999); 
-  
   const targetMs = target.getTime();
-  if (isNaN(targetMs)) return 0;
-  
-  return targetMs - timerRef.value;
+  return isNaN(targetMs) ? 0 : targetMs - timerRef.value;
 };
 
 const formatCountdown = (schedule) => {
   const diff = getRemainingMs(schedule);
   if (diff <= 0) return "EXPIRED / OVERDUE";
-
   const d = Math.floor(diff / (1000 * 60 * 60 * 24));
   const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   const s = Math.floor((diff % (1000 * 60)) / 1000);
-
   return `${d}d : ${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
 };
 
@@ -336,11 +362,11 @@ const toggleSelectBook = (id) => {
 };
 
 const deleteSelectedBooks = async () => {
-  if (!confirm(`Delete ${selectedBooks.value.length} books?`)) return;
   const batch = writeBatch(db);
   selectedBooks.value.forEach(id => batch.delete(doc(db, "books", id)));
   await batch.commit();
   selectedBooks.value = [];
+  showDeleteModal.value = false;
 };
 
 const approveRequest = async (req) => {
@@ -360,9 +386,44 @@ const declineRequest = async (id) => {
   await addDoc(collection(db, "history"), { bookTitle: req?.bookTitle, userEmail: req?.userEmail, status: 'declined', createdAt: serverTimestamp() });
 };
 
-const markAsReturned = async (person) => {
-  await deleteDoc(doc(db, "borrowers", person.id));
-  await addDoc(collection(db, "history"), { bookTitle: person.bookTitle, userEmail: person.userEmail, status: 'returned', createdAt: serverTimestamp() });
+// 🛠️ RETURN LOGIC WITH MODAL AND NOTIFICATION
+const confirmReturn = (person) => {
+  targetBorrower.value = person;
+  showReturnModal.value = true;
+};
+
+const executeReturn = async () => {
+  if (!targetBorrower.value) return;
+  
+  const { id, bookTitle, userEmail, userId } = targetBorrower.value;
+
+  try {
+    // 1. Delete from borrowers collection
+    await deleteDoc(doc(db, "borrowers", id));
+
+    // 2. Add to History Logs
+    await addDoc(collection(db, "history"), { 
+      bookTitle, 
+      userEmail, 
+      status: 'returned', 
+      createdAt: serverTimestamp() 
+    });
+
+    // 3. Notify the User (This will show up in their Inbox)
+    await addDoc(collection(db, "notifications"), {
+      userId: userId, // Gamit yung saved userId sa borrower doc
+      bookTitle: bookTitle,
+      userEmail: userEmail,
+      message: "The librarian set your book to returned.",
+      status: 'returned_by_admin',
+      createdAt: serverTimestamp()
+    });
+
+    showReturnModal.value = false;
+    targetBorrower.value = null;
+  } catch (error) {
+    console.error("Return error:", error);
+  }
 };
 
 const executeLogout = async () => {
