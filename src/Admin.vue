@@ -12,7 +12,7 @@
       </div>
     </transition>
 
-    <!-- NAVIGATION BAR (ROOT LEVEL FIXED OVERLAY) -->
+    <!-- NAVIGATION BAR -->
     <div v-if="contentVisible" class="fixed bottom-8 left-0 right-0 z-[200] flex justify-center px-6 pointer-events-none">
       <nav class="bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] w-full max-w-md pointer-events-auto animate-nav-in">
         <button v-for="tab in ['dashboard', 'inventory', 'requests', 'borrowers', 'community', 'logs']" 
@@ -37,7 +37,6 @@
     <!-- UI LAYER -->
     <div v-if="contentVisible" class="animate-content-in relative min-h-screen">
       
-      <!-- Top Header -->
       <header class="p-6 flex justify-between items-center relative z-20">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-zinc-900 border border-white/10 rounded-lg flex items-center justify-center">
@@ -63,47 +62,29 @@
       <main class="max-w-5xl mx-auto px-6 pb-48 relative z-10">
         <transition name="page" mode="out-in">
           
-          <!-- DASHBOARD TAB -->
+          <!-- DASHBOARD -->
           <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 pt-4">
             <section>
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
             </section>
-
             <div class="grid grid-cols-2 gap-3">
               <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Inventory</p>
                 <p class="text-4xl font-bold tracking-tighter">{{ books.length }}</p>
-                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Asset Count</p>
               </div>
               <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem]">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Active Loans</p>
                 <p class="text-4xl font-bold tracking-tighter text-amber-500">{{ borrowers.length }}</p>
-                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Active Sessions</p>
               </div>
               <div class="bg-zinc-900 border border-white/5 p-6 rounded-[2rem] col-span-2">
                 <p class="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-1">Community Strength</p>
                 <p class="text-4xl font-bold tracking-tighter">{{ users.length }}</p>
-                <p class="text-[8px] font-bold text-zinc-600 uppercase mt-2">Registered Members</p>
               </div>
             </div>
-            
-            <transition name="fade">
-              <div @click="activeTab = 'requests'" v-if="pendingRequests.length > 0" class="bg-white p-8 rounded-[2.5rem] cursor-pointer active:scale-[0.98] transition-all">
-                <div class="flex justify-between items-center">
-                  <div>
-                    <h3 class="text-2xl font-black tracking-tighter uppercase mb-1 text-black">Action Required</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-60 text-black">{{ pendingRequests.length }} authorizations pending</p>
-                  </div>
-                  <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black">
-                    {{ pendingRequests.length }}
-                  </div>
-                </div>
-              </div>
-            </transition>
           </div>
 
-          <!-- INVENTORY TAB -->
+          <!-- INVENTORY -->
           <div v-else-if="activeTab === 'inventory'" key="inventory" class="pt-4">
             <section class="mb-8 flex justify-between items-end">
               <div>
@@ -112,7 +93,6 @@
               </div>
               <div class="flex gap-2">
                 <button v-if="selectedBooks.length > 0" @click="showBatchDeleteModal = true" class="px-6 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-90 transition-all">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   Delete ({{ selectedBooks.length }})
                 </button>
                 <button @click="showAddModal = true" class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all">
@@ -120,63 +100,49 @@
                 </button>
               </div>
             </section>
-            
-            <div v-if="books.length === 0" class="py-20 text-center">
-              <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">No Assets Registered</p>
-            </div>
-            
+            <div v-if="books.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Assets Registered</div>
             <transition-group name="list" tag="div" class="space-y-3">
-              <div v-for="book in books" :key="book.id" 
-                   @click="toggleSelection(book.id)"
-                   :class="selectedBooks.includes(book.id) ? 'border-white bg-zinc-800' : 'border-white/5 bg-zinc-900'"
-                   class="p-6 border rounded-[1.8rem] flex items-center justify-between group transition-all cursor-pointer">
+              <div v-for="book in books" :key="book.id" @click="toggleSelection(book.id)" :class="selectedBooks.includes(book.id) ? 'border-white bg-zinc-800' : 'border-white/5 bg-zinc-900'" class="p-6 border rounded-[1.8rem] flex items-center justify-between transition-all cursor-pointer">
                 <div class="flex items-center gap-4">
                    <div :class="selectedBooks.includes(book.id) ? 'bg-white text-black' : 'bg-zinc-950 text-zinc-700'" class="w-10 h-10 rounded-xl flex items-center justify-center border border-white/5 transition-colors">
                       <svg v-if="!selectedBooks.includes(book.id)" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                       <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" /></svg>
                    </div>
-                   <div>
-                      <h3 class="text-base font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
-                      <p class="text-[8px] text-zinc-700 uppercase tracking-[0.2em] font-black mt-2">UID: {{ book.id.slice(0,10) }}</p>
-                   </div>
+                   <h3 class="text-base font-bold tracking-tight uppercase leading-none">{{ book.title }}</h3>
                 </div>
-                <button @click.stop="confirmDelete(book)" class="w-10 h-10 flex items-center justify-center text-zinc-800 hover:text-red-500 transition-colors active:scale-90">
+                <button @click.stop="confirmDelete(book)" class="w-10 h-10 text-zinc-800 hover:text-red-500 transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
               </div>
             </transition-group>
           </div>
 
-          <!-- REQUESTS TAB -->
+          <!-- APPROVALS -->
           <div v-else-if="activeTab === 'requests'" key="requests" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Queue Management</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Approvals</h2>
             </section>
-            <div v-if="pendingRequests.length === 0" class="py-20 text-center">
-              <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">Queue is Clear</p>
-            </div>
+            <div v-if="pendingRequests.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">Queue is Clear</div>
             <transition-group name="list" tag="div" class="space-y-4">
               <div v-for="req in pendingRequests" :key="req.id" class="bg-zinc-900 border border-white/5 p-8 rounded-[2.5rem]">
                 <h3 class="text-xl font-bold tracking-tighter uppercase mb-1">{{ req.bookTitle }}</h3>
                 <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-6">{{ req.userEmail }}</p>
                 <div class="flex gap-3">
-                  <button @click="handleApproval(req, true)" class="flex-1 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Authorize</button>
-                  <button @click="handleApproval(req, false)" class="flex-1 py-4 bg-zinc-950 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
+                  <button @click="confirmApproval(req)" class="flex-1 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Authorize</button>
+                  <button @click="confirmDecline(req)" class="flex-1 py-4 bg-zinc-950 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-red-500/10">Decline</button>
                 </div>
               </div>
             </transition-group>
           </div>
 
-          <!-- BORROWERS TAB -->
+          <!-- BORROWERS -->
           <div v-else-if="activeTab === 'borrowers'" key="borrowers" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Live Tracking</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Borrowers</h2>
             </section>
-            <div v-if="borrowers.length === 0" class="py-20 text-center">
-              <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">No Active Loans</p>
-            </div>
+            <div v-if="borrowers.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Active Loans</div>
             <transition-group name="list" tag="div" class="space-y-3">
               <div v-for="person in borrowers" :key="person.id" class="p-6 bg-zinc-900 rounded-[2rem] flex justify-between items-center border border-white/5">
                 <div class="flex-1">
@@ -188,7 +154,7 @@
             </transition-group>
           </div>
 
-          <!-- COMMUNITY TAB -->
+          <!-- COMMUNITY -->
           <div v-else-if="activeTab === 'community'" key="community" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">User Network</p>
@@ -207,7 +173,7 @@
             </div>
           </div>
 
-          <!-- PROFILE TAB -->
+          <!-- PROFILE -->
           <div v-else-if="activeTab === 'profile'" key="profile" class="pt-4 space-y-8">
             <section>
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Identity</p>
@@ -220,7 +186,6 @@
               <h3 class="text-2xl font-black uppercase tracking-tighter mb-1">Administrator</h3>
               <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] mb-8">System Access Node</p>
               
-              <!-- RESTORED SYSTEM INFO -->
               <div class="bg-zinc-950/50 rounded-2xl p-6 mb-8 text-left border border-white/5">
                 <p class="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-4">Core System Diagnostics</p>
                 <div class="space-y-3">
@@ -239,7 +204,6 @@
                 </div>
               </div>
 
-              <!-- RESTORED SOCIALS -->
               <div class="flex justify-center gap-4 mb-8">
                 <a href="#" class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
@@ -253,19 +217,14 @@
             </div>
           </div>
 
-          <!-- LOGS/HISTORY TAB -->
+          <!-- LOGS -->
           <div v-else-if="activeTab === 'logs'" key="logs" class="pt-4">
             <section class="mb-8">
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Audit Record</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">History</h2>
             </section>
-            
-            <!-- RESTORED EMPTY STATE -->
-            <div v-if="historyLogs.length === 0" class="py-20 text-center">
-              <p class="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-800">No Transaction Records</p>
-            </div>
-
-            <div v-else class="space-y-2">
+            <div v-if="historyLogs.length === 0" class="py-20 text-center text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em]">No Transaction Records</div>
+            <div class="space-y-2">
               <div v-for="log in historyLogs" :key="log.id" class="p-6 bg-zinc-900 border border-white/5 rounded-[1.5rem] flex justify-between items-center">
                 <div>
                   <p class="text-[12px] font-bold uppercase tracking-tight mb-1">{{ log.bookTitle }}</p>
@@ -281,59 +240,79 @@
 
     <!-- MODALS -->
     
-    <!-- ADD BOOK MODAL -->
+    <!-- Confirm Authorize Modal -->
+    <transition name="fade">
+      <div v-if="requestToAuthorize" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase">Authorize Loan?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">Confirming access for {{ requestToAuthorize.userEmail }}</p>
+          <div class="flex gap-3">
+            <button @click="handleApproval(requestToAuthorize, true)" class="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Confirm</button>
+            <button @click="requestToAuthorize = null" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Confirm Decline Modal -->
+    <transition name="fade">
+      <div v-if="requestToDecline" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
+          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase text-red-500">Decline Request?</h2>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">Request from {{ requestToDecline.userEmail }} will be rejected.</p>
+          <div class="flex gap-3">
+            <button @click="handleApproval(requestToDecline, false)" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Decline</button>
+            <button @click="requestToDecline = null" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- OTHER MODALS (Add, Delete, etc) -->
     <transition name="fade">
       <div v-if="showAddModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
-        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
-          <h2 class="text-2xl font-bold tracking-tighter mb-8 uppercase text-center">Add New Asset</h2>
-          <div class="space-y-4 mb-10">
-            <input v-model="newBook.title" @keyup.enter="addBook" type="text" placeholder="BOOK TITLE" class="w-full bg-zinc-950 border border-white/5 rounded-2xl py-5 px-6 text-white outline-none font-bold placeholder:text-zinc-700 focus:border-white transition-all uppercase" />
-          </div>
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full">
+          <h2 class="text-2xl font-bold tracking-tighter mb-8 uppercase text-center">Add Asset</h2>
+          <input v-model="newBook.title" type="text" placeholder="TITLE" class="w-full bg-zinc-950 border border-white/5 rounded-2xl py-5 px-6 text-white mb-6 uppercase font-bold" />
           <div class="flex gap-3">
-            <button @click="addBook" class="flex-[2] py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Create</button>
-            <button @click="showAddModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Back</button>
+            <button @click="addBook" class="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px]">Add</button>
+            <button @click="showAddModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px]">Back</button>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- SINGLE DELETE MODAL -->
     <transition name="fade">
       <div v-if="showDeleteModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
-        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
-          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase">Delete Asset?</h2>
-          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">This action cannot be undone.</p>
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full text-center">
+          <h2 class="text-2xl font-bold tracking-tighter mb-10 uppercase">Delete?</h2>
           <div class="flex gap-3">
-            <button @click="deleteBook" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Delete</button>
-            <button @click="showDeleteModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Abort</button>
+            <button @click="deleteBook" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px]">Delete</button>
+            <button @click="showDeleteModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px]">Abort</button>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- BATCH DELETE MODAL -->
     <transition name="fade">
       <div v-if="showBatchDeleteModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
-        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
-          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase text-red-500">Mass Purge</h2>
-          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">Delete {{ selectedBooks.length }} selected assets?</p>
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full text-center">
+          <h2 class="text-2xl font-bold tracking-tighter mb-10 uppercase text-red-500">Mass Purge ({{ selectedBooks.length }})?</h2>
           <div class="flex gap-3">
-            <button @click="batchDelete" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Confirm Purge</button>
-            <button @click="showBatchDeleteModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+            <button @click="batchDelete" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px]">Purge</button>
+            <button @click="showBatchDeleteModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px]">Abort</button>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- LOGOUT MODAL -->
     <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-xl px-6">
-        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl text-center">
-          <h2 class="text-2xl font-bold tracking-tighter mb-2 uppercase">Log Out?</h2>
-          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-10">Session data will be cleared.</p>
+        <div class="bg-zinc-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full text-center">
+          <h2 class="text-2xl font-bold tracking-tighter mb-10 uppercase">Log Out?</h2>
           <div class="flex gap-3">
-            <button @click="$emit('logout')" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">Confirm</button>
-            <button @click="showLogoutModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px] active:scale-95 transition-all">Cancel</button>
+            <button @click="$emit('logout')" class="flex-1 py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[11px]">Confirm</button>
+            <button @click="showLogoutModal = false" class="flex-1 py-5 bg-zinc-950 text-zinc-500 rounded-2xl font-bold uppercase text-[11px]">Cancel</button>
           </div>
         </div>
       </div>
@@ -359,7 +338,11 @@ const notifications = ref([]);
 const borrowers = ref([]);
 const historyLogs = ref([]);
 
-// Modals
+// State for Confirmation Modals
+const requestToAuthorize = ref(null);
+const requestToDecline = ref(null);
+
+// General Modals
 const showAddModal = ref(false);
 const showLogoutModal = ref(false);
 const showDeleteModal = ref(false);
@@ -376,14 +359,12 @@ const updateClock = () => {
   currentTimeDisplay.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
 };
 
-const onWelcomeFinished = () => {
-  contentVisible.value = true;
-};
+const onWelcomeFinished = () => { contentVisible.value = true; };
 
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
-  setTimeout(() => { showWelcome.value = false; }, 2000);
+  setTimeout(() => { showWelcome.value = false; }, 1500);
 
   onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
   onSnapshot(collection(db, "users"), (s) => users.value = s.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -424,21 +405,44 @@ const deleteBook = async () => {
 const batchDelete = async () => {
   if (selectedBooks.value.length === 0) return;
   const batch = writeBatch(db);
-  selectedBooks.value.forEach(id => {
-    batch.delete(doc(db, "books", id));
-  });
+  selectedBooks.value.forEach(id => { batch.delete(doc(db, "books", id)); });
   await batch.commit();
   selectedBooks.value = [];
   showBatchDeleteModal.value = false;
 };
 
+const confirmApproval = (req) => { requestToAuthorize.value = req; };
+const confirmDecline = (req) => { requestToDecline.value = req; };
+
 const handleApproval = async (req, isApproved) => {
   const status = isApproved ? 'approved' : 'declined';
+  
+  // 1. Update Notification Status
   await updateDoc(doc(db, "notifications", req.id), { status });
-  await addDoc(collection(db, "history"), { bookTitle: req.bookTitle, userEmail: req.userEmail, userId: req.userId, status: status, createdAt: serverTimestamp() });
+  
+  // 2. Log to History
+  await addDoc(collection(db, "history"), { 
+    bookTitle: req.bookTitle, 
+    userEmail: req.userEmail, 
+    userId: req.userId, 
+    status: status, 
+    createdAt: serverTimestamp() 
+  });
+  
+  // 3. Add to Borrowers if Approved
   if (isApproved) {
-    await addDoc(collection(db, "borrowers"), { bookId: req.bookId, bookTitle: req.bookTitle, userEmail: req.userEmail, userId: req.userId, borrowedAt: serverTimestamp() });
+    await addDoc(collection(db, "borrowers"), { 
+      bookId: req.bookId, 
+      bookTitle: req.bookTitle, 
+      userEmail: req.userEmail, 
+      userId: req.userId, 
+      borrowedAt: serverTimestamp() 
+    });
   }
+
+  // Reset Modals
+  requestToAuthorize.value = null;
+  requestToDecline.value = null;
 };
 
 const handleReturn = async (person) => {
@@ -456,34 +460,17 @@ const getLogBadgeClass = (status) => {
 
 <style scoped>
 .apple-gradient { background: linear-gradient(180deg, #ffffff 0%, #444444 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-@keyframes navIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.9); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.animate-nav-in {
-  animation: navIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  animation-delay: 0.5s;
-}
-
-@keyframes contentIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-content-in {
-  animation: contentIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
+@keyframes navIn { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.animate-nav-in { animation: navIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.5s; }
+@keyframes contentIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-content-in { animation: contentIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 .welcome-fade-leave-active { transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1); }
 .welcome-fade-leave-to { opacity: 0; transform: scale(1.1); filter: blur(20px); }
-
 .page-enter-active, .page-leave-active { transition: all 0.3s ease; }
 .page-enter-from { opacity: 0; transform: translateY(5px); }
 .page-leave-to { opacity: 0; transform: translateY(-5px); }
-
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-
 .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
 .list-enter-from { opacity: 0; transform: translateX(-10px); }
 .list-leave-to { opacity: 0; transform: scale(0.95); }
