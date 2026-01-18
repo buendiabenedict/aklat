@@ -60,33 +60,39 @@
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Total Books Available</h3>
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Books Available</h3>
             <p class="text-3xl font-bold tracking-tighter">{{ allBooks.length }}</p>
           </div>
           <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Your Identity</h3>
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Member Account</h3>
             <p class="text-xl font-bold tracking-tighter text-white truncate">{{ currentUserEmail }}</p>
           </div>
         </div>
 
         <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-8">
           <div class="relative w-full max-w-xl">
-             <input v-model="searchQuery" type="text" placeholder="Search for a book title..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full outline-none focus:border-white/30 transition-all" />
+             <input v-model="searchQuery" type="text" placeholder="Search for a book..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white w-full outline-none focus:border-white/30 transition-all" />
           </div>
           
-          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
+          <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950 shadow-2xl">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] border-b border-white/5">
-                  <th class="p-8">Book Information</th>
-                  <th class="p-8 text-right">Status</th>
+                  <th class="p-8">Book Title</th>
+                  <th class="p-8 text-right">Action</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-white/[0.03]">
-                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02] transition-colors">
+                <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.04] group transition-colors">
                   <td class="p-8 font-medium tracking-tight text-zinc-200">{{ book.title }}</td>
                   <td class="p-8 text-right">
-                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 bg-green-500/10 text-green-500 rounded-full border border-green-500/20">Available</span>
+                    <button 
+                      @click="openBorrowModal(book)" 
+                      class="px-6 py-2 bg-white text-black font-bold text-[10px] uppercase tracking-widest rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-zinc-200 active:scale-95"
+                    >
+                      Borrow
+                    </button>
+                    <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest group-hover:hidden transition-all">Available</span>
                   </td>
                 </tr>
               </tbody>
@@ -94,23 +100,46 @@
           </div>
         </section>
 
-        <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl text-zinc-500 leading-relaxed">
-           <p class="text-white font-bold mb-4">Account Information</p>
+        <div v-else-if="activeTab === 'settings'" :key="'settings'" class="p-10 border border-white/10 rounded-2xl text-zinc-500">
            Email: {{ currentUserEmail }} <br/>
-           Access: Student (Read-Only) <br/>
-           Location: Global Library Sync 🌍
+           Sync Status: Secured 🛡️
         </div>
       </transition>
     </main>
 
     <transition name="fade">
+      <div v-if="showBorrowModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6 backdrop-blur-sm">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-md w-full text-center">
+          <div class="w-20 h-20 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-8 border border-white/10">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+          </div>
+          <h3 class="text-3xl font-bold mb-4 tracking-tighter">Borrow this book?</h3>
+          <p class="text-zinc-500 text-sm mb-10 px-4">You are requesting to borrow <span class="text-white font-bold italic">"{{ selectedBook?.title }}"</span>. A notification will be sent to the administrator for approval.</p>
+          
+          <div class="flex flex-col gap-3">
+            <button @click="handleBorrowRequest" :disabled="borrowLoading" class="w-full py-5 bg-white text-black font-black rounded-2xl hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-50">
+              {{ borrowLoading ? 'Sending Request...' : 'Confirm Request' }}
+            </button>
+            <button @click="showBorrowModal = false" class="w-full py-5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/5 transition-all">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="slide-up">
+      <div v-if="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] bg-zinc-900 border border-white/10 px-8 py-4 rounded-full shadow-2xl flex items-center gap-4">
+        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        <p class="text-xs font-bold tracking-widest uppercase">{{ toastMessage }}</p>
+      </div>
+    </transition>
+
+    <transition name="fade">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center text-white">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center">
           <h3 class="text-2xl font-bold mb-2 tracking-tighter">Sign Out?</h3>
-          <p class="text-zinc-500 text-sm mb-8">Come back soon to discover more books.</p>
-          <div class="flex gap-3">
-            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold hover:bg-white/5">Cancel</button>
-            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold hover:bg-red-700">Logout</button>
+          <div class="flex gap-3 mt-8">
+            <button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button>
+            <button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold">Logout</button>
           </div>
         </div>
       </div>
@@ -122,13 +151,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { db, auth } from './lib/firebase';
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
 
 // State
 const allBooks = ref([]);
 const activeTab = ref('home');
 const showWelcome = ref(true);
 const showLogoutModal = ref(false);
+const showBorrowModal = ref(false);
+const borrowLoading = ref(false);
+const selectedBook = ref(null);
+const toastMessage = ref('');
 const searchQuery = ref('');
 const currentTime = ref('');
 const dbStatus = ref('online');
@@ -140,30 +173,59 @@ const navItems = [
   { id: 'settings', name: 'Settings', path: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
 ];
 
+// Search Logic
 const filteredBooks = computed(() => {
   if (!searchQuery.value) return allBooks.value;
   return allBooks.value.filter(book => book.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
+// Functions
 const updateTime = () => {
   const now = new Date();
   currentTime.value = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
-// Fixed Database Status Sync
+const openBorrowModal = (book) => {
+  selectedBook.value = book;
+  showBorrowModal.value = true;
+};
+
+const handleBorrowRequest = async () => {
+  if (!selectedBook.value) return;
+  borrowLoading.value = true;
+
+  try {
+    // We create a notification for the admin
+    await addDoc(collection(db, "notifications"), {
+      type: "borrow_request",
+      bookTitle: selectedBook.value.title,
+      userEmail: currentUserEmail.value,
+      userId: auth.currentUser.uid,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    showBorrowModal.value = false;
+    triggerToast("Request sent to Admin!");
+  } catch (err) {
+    alert("Error: " + err.message);
+  } finally {
+    borrowLoading.value = false;
+  }
+};
+
+const triggerToast = (msg) => {
+  toastMessage.value = msg;
+  setTimeout(() => { toastMessage.value = ''; }, 3000);
+};
+
+// Data Sync
 const syncData = () => {
-  // Listen to global books collection (Read-Only for users)
   const q = query(collection(db, "books"), orderBy("createdAt", "desc"));
-  
-  const unsubscribe = onSnapshot(q, (snapshot) => {
+  return onSnapshot(q, (snapshot) => {
     allBooks.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     dbStatus.value = 'online';
-  }, (error) => {
-    console.error("Firestore sync error:", error);
-    dbStatus.value = 'offline';
-  });
-
-  return unsubscribe;
+  }, () => { dbStatus.value = 'offline'; });
 };
 
 let timeInterval;
@@ -173,23 +235,20 @@ onMounted(() => {
   firestoreUnsubscribe = syncData();
   updateTime();
   timeInterval = setInterval(updateTime, 1000);
-  
-  // Browser-level connection check
-  window.addEventListener('online', () => dbStatus.value = 'online');
-  window.addEventListener('offline', () => dbStatus.value = 'offline');
-  
   setTimeout(() => { showWelcome.value = false; }, 3000);
 });
 
 onUnmounted(() => {
   clearInterval(timeInterval);
   if (firestoreUnsubscribe) firestoreUnsubscribe();
-  window.removeEventListener('online', () => dbStatus.value = 'online');
-  window.removeEventListener('offline', () => dbStatus.value = 'offline');
 });
 </script>
 
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+.slide-up-enter-from { opacity: 0; transform: translate(-50%, 20px); }
+.slide-up-leave-to { opacity: 0; transform: translate(-50%, 20px); }
 </style>
