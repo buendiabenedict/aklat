@@ -59,11 +59,12 @@
         </div>
       </header>
 
-      <main class="max-w-5xl mx-auto px-6 pb-48 relative z-10">
-        <transition name="page" mode="out-in">
-          
-          <!-- DASHBOARD -->
-          <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 pt-4">
+      <main class="max-w-5xl mx-auto px-6 relative z-10 h-[calc(100vh-140px)]">
+        <div class="h-full overflow-y-auto custom-scrollbar pb-16">
+          <transition name="page" mode="out-in">
+            
+            <!-- DASHBOARD -->
+            <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6 pt-4">
             <section>
               <p class="text-zinc-600 text-[9px] font-bold uppercase tracking-[0.4em] mb-1">Metrics</p>
               <h2 class="text-5xl font-bold tracking-tighter uppercase apple-gradient leading-none">Overview</h2>
@@ -234,8 +235,7 @@
               </div>
             </div>
           </div>
-        </transition>
-      </main>
+        </transition>        </div>      </main>
     </div>
 
     <!-- MODALS -->
@@ -494,4 +494,9 @@ const getLogBadgeClass = (status) => {
 .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
 .list-enter-from { opacity: 0; transform: translateX(-10px); }
 .list-leave-to { opacity: 0; transform: scale(0.95); }
+
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
 </style>
