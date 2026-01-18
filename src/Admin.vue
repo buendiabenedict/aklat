@@ -38,7 +38,7 @@
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
             <span :class="dbStatus === 'online' ? 'bg-green-500' : 'bg-red-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
           </div>
-          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">DB: {{ dbStatus }}</p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">DB: {{ dbStatus }}</p>
         </div>
         <button @click="showLogoutModal = true" class="w-full h-14 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all">
           <span class="font-bold text-xs uppercase tracking-widest">Sign Out</span>
@@ -50,93 +50,92 @@
       :class="[showWelcome ? 'opacity-5' : 'opacity-100']"
       class="flex-1 h-full overflow-y-auto p-8 md:p-16 relative z-10 bg-black"
     >
-      <header class="mb-16 flex justify-between items-start">
-        <div>
-          <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">{{ currentTime }} • Cloud Database</p>
-          <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab.replace('_', ' ') }}</h2>
-        </div>
+      <header class="mb-16">
+        <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">{{ currentTime }} • System Ledger</p>
+        <h2 class="text-6xl font-bold tracking-tighter capitalize">{{ activeTab.replace('_', ' ') }}</h2>
       </header>
 
       <transition name="fade" mode="out-in">
         <div v-if="activeTab === 'home'" :key="'home'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Inventory</h3>
-            <p class="text-3xl font-bold tracking-tighter">{{ books.length }}</p>
-          </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-red-500">New Requests</h3>
-            <p class="text-3xl font-bold tracking-tighter">{{ notifications.length }}</p>
-          </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-blue-500">Active Loans</h3>
-            <p class="text-3xl font-bold tracking-tighter">{{ borrowers.length }}</p>
-          </div>
-          <div class="p-8 border border-white/10 rounded-2xl bg-zinc-950 shadow-lg">
-            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4 text-zinc-500">Total Logs</h3>
-            <p class="text-3xl font-bold tracking-tighter">{{ history.length }}</p>
+          <div v-for="stat in stats" :key="stat.label" class="p-8 border border-white/10 rounded-2xl bg-zinc-950">
+            <h3 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">{{ stat.label }}</h3>
+            <p class="text-3xl font-bold tracking-tighter" :class="stat.color">{{ stat.value }}</p>
           </div>
         </div>
 
-        <section v-else-if="activeTab === 'notifications'" :key="'notifications'" class="space-y-4">
-          <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests. ☕</div>
-          <div v-for="notif in notifications" :key="notif.id" class="p-6 border border-white/20 rounded-2xl bg-zinc-950 flex justify-between items-center animate-in fade-in duration-500">
-            <div class="flex gap-4 items-center">
-              <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-bold">{{ notif.userEmail[0].toUpperCase() }}</div>
-              <div>
-                <p class="text-sm font-bold tracking-tight text-zinc-200"><span class="text-zinc-500 font-normal">{{ notif.userEmail }}</span> wants to borrow <span class="italic text-white">"{{ notif.bookTitle }}"</span></p>
-                <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-black mt-1">Pending Approval</p>
+        <section v-else-if="activeTab === 'notifications'" :key="'notifications'">
+          <div v-if="notifications.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No pending requests.</div>
+          <transition-group name="list" tag="div" class="space-y-4">
+            <div v-for="notif in notifications" :key="notif.id" class="p-6 border border-white/20 rounded-2xl bg-zinc-950 flex justify-between items-center">
+              <div class="flex gap-4 items-center">
+                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold">{{ notif.userEmail[0].toUpperCase() }}</div>
+                <div>
+                  <p class="text-sm font-bold">{{ notif.userEmail }} <span class="text-zinc-500 font-normal">requested</span> {{ notif.bookTitle }}</p>
+                  <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-black mt-1">Awaiting Action</p>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <button @click="handleAction(notif, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-lg hover:bg-zinc-200">Approve</button>
+                <button @click="handleAction(notif, 'rejected')" class="px-6 py-2 border border-white/10 text-white text-[10px] font-black uppercase rounded-lg hover:bg-white/5">Decline</button>
               </div>
             </div>
-            <div class="flex gap-3">
-              <button @click="handleAction(notif, 'approved')" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-zinc-200 transition-all active:scale-95">Approve</button>
-              <button @click="handleAction(notif, 'rejected')" class="px-6 py-2 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-white/5 transition-all">Decline</button>
-            </div>
-          </div>
+          </transition-group>
         </section>
 
-        <section v-else-if="activeTab === 'borrowed'" :key="'borrowed'" class="space-y-4">
-          <div v-if="borrowers.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No active borrowers found.</div>
-          <div v-for="item in borrowers" :key="item.id" class="p-6 border border-blue-500/10 rounded-2xl bg-zinc-950 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-lg flex items-center justify-center font-bold">📖</div>
-              <div>
-                <p class="text-sm font-bold text-white">{{ item.bookTitle }}</p>
-                <p class="text-[10px] text-zinc-500 italic">{{ item.userEmail }}</p>
+        <section v-else-if="activeTab === 'borrowed'" :key="'borrowed'">
+          <div v-if="borrowers.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">No active loans.</div>
+          <transition-group name="list" tag="div" class="space-y-4">
+            <div v-for="item in borrowers" :key="item.id" class="p-6 border border-blue-500/10 rounded-2xl bg-zinc-950 flex justify-between items-center">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-lg flex items-center justify-center">📖</div>
+                <div>
+                  <p class="text-sm font-bold text-white">{{ item.bookTitle }}</p>
+                  <p class="text-[10px] text-zinc-500 uppercase tracking-widest">{{ item.userEmail }}</p>
+                </div>
+              </div>
+              <button @click="handleReturn(item)" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-blue-500 shadow-lg active:scale-95 transition-all">Mark as Returned</button>
+            </div>
+          </transition-group>
+        </section>
+
+        <section v-else-if="activeTab === 'history'" :key="'history'">
+          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">Log is empty.</div>
+          <transition-group name="list" tag="div" class="space-y-3">
+            <div v-for="log in history" :key="log.id" class="p-5 border border-white/5 rounded-2xl bg-zinc-950/40 flex justify-between items-center hover:bg-zinc-900/50 transition-colors">
+              <div class="flex items-center gap-5">
+                <div :class="log.status === 'returned' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'" class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shadow-inner">
+                  {{ log.status === 'returned' ? '✓' : '✕' }}
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-zinc-200">{{ log.bookTitle }}</p>
+                  <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-medium">{{ log.userEmail }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-[9px] font-black uppercase tracking-[0.2em] border border-white/5 px-3 py-1 rounded-full bg-black/50">
+                  {{ log.status }}
+                </span>
+                <p class="text-[9px] text-zinc-600 mt-2 font-bold uppercase tracking-tighter">
+                  {{ log.timestamp ? formatLogTime(log.timestamp) : 'Just now' }}
+                </p>
               </div>
             </div>
-            <button @click="handleReturn(item)" class="px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 shadow-xl active:scale-95">Mark as Returned</button>
-          </div>
+          </transition-group>
         </section>
 
-        <section v-else-if="activeTab === 'history'" :key="'history'" class="space-y-4">
-          <div v-if="history.length === 0" class="p-20 text-center text-zinc-600 italic border border-dashed border-white/10 rounded-3xl">History is empty.</div>
-          <div v-for="log in history" :key="log.id" class="p-5 border border-white/5 rounded-2xl bg-zinc-950/50 flex justify-between items-center opacity-70">
-            <div class="flex items-center gap-4">
-              <span :class="log.status === 'returned' ? 'text-green-500' : 'text-red-500'" class="text-xs">●</span>
-              <div>
-                <p class="text-sm font-medium text-zinc-300">{{ log.bookTitle }}</p>
-                <p class="text-[9px] text-zinc-600 uppercase tracking-widest">{{ log.userEmail }}</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <span :class="log.status === 'returned' ? 'text-green-500 border-green-500/20' : 'text-red-500 border-red-500/20'" class="text-[9px] font-black uppercase tracking-[0.2em] border px-3 py-1 rounded-full">{{ log.status }}</span>
-            </div>
-          </div>
-        </section>
-
-        <section v-else-if="activeTab === 'inventory'" :key="'inventory'" class="space-y-4">
+        <section v-else-if="activeTab === 'inventory'" :key="'inventory'">
           <div class="flex gap-4 mb-8">
-            <input v-model="searchQuery" type="text" placeholder="Search books..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none" />
-            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold">Add Book</button>
+            <input v-model="searchQuery" type="text" placeholder="Search books..." class="bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white flex-1 outline-none focus:border-white/30 transition-all" />
+            <button @click="showAddBookModal = true" class="bg-white text-black px-8 py-4 rounded-xl font-bold active:scale-95 transition-all">Add Book</button>
           </div>
           <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950">
             <table class="w-full text-left">
-              <tbody class="divide-y divide-white/[0.03]">
+              <transition-group name="list" tag="tbody" class="divide-y divide-white/[0.03]">
                 <tr v-for="book in filteredBooks" :key="book.id" class="hover:bg-white/[0.02]">
                   <td class="p-8 font-medium">{{ book.title }}</td>
-                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500 text-[10px] font-bold uppercase tracking-widest">Remove</button></td>
+                  <td class="p-8 text-right"><button @click="confirmDelete(book.id)" class="text-red-500/50 hover:text-red-500 text-[10px] font-bold uppercase tracking-widest">Remove</button></td>
                 </tr>
-              </tbody>
+              </transition-group>
             </table>
           </div>
         </section>
@@ -144,20 +143,16 @@
     </main>
 
     <transition name="fade">
-      <div v-if="showAddBookModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-lg w-full shadow-2xl">
-          <h3 class="text-2xl font-bold mb-6 tracking-tighter italic underline decoration-blue-500">Add to Collection</h3>
-          <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="Book Title..." class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white mb-8 outline-none focus:border-white/40"/>
+      <div v-if="showAddBookModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm px-6">
+        <div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-lg w-full">
+          <h3 class="text-2xl font-bold mb-6 tracking-tighter italic">Register Book</h3>
+          <input v-model="newBookTitle" @keyup.enter="addBook" type="text" placeholder="Title..." class="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 px-6 text-white mb-8 outline-none focus:border-white/40"/>
           <div class="flex gap-3">
             <button @click="showAddBookModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold text-white">Cancel</button>
-            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-black">Register Book</button>
+            <button @click="addBook" class="flex-1 py-4 rounded-xl bg-white text-black font-black">Add to DB</button>
           </div>
         </div>
       </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-6"><div class="bg-zinc-950 border border-white/10 p-10 rounded-3xl max-w-sm w-full text-center"><h3 class="text-2xl font-bold mb-8 tracking-tighter">Sign Out?</h3><div class="flex gap-3"><button @click="showLogoutModal = false" class="flex-1 py-4 rounded-xl border border-white/10 font-bold">Cancel</button><button @click="$emit('logout')" class="flex-1 py-4 rounded-xl bg-red-600 font-bold">Logout</button></div></div></div>
     </transition>
 
   </div>
@@ -191,20 +186,25 @@ const navItems = [
   { id: 'history', name: 'History Logs', path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }
 ];
 
-// Data Syncing
+const stats = computed(() => [
+  { label: 'Books', value: books.value.length, color: 'text-white' },
+  { label: 'New Requests', value: notifications.value.length, color: 'text-red-500' },
+  { label: 'Active Loans', value: borrowers.value.length, color: 'text-blue-500' },
+  { label: 'Logged Entries', value: history.value.length, color: 'text-zinc-500' }
+]);
+
 const loadData = () => {
   onSnapshot(query(collection(db, "books"), orderBy("createdAt", "desc")), (s) => books.value = s.docs.map(d => ({id: d.id, ...d.data()})));
   onSnapshot(collection(db, "notifications"), (s) => notifications.value = s.docs.map(d => ({id: d.id, ...d.data()})));
   onSnapshot(collection(db, "borrowers"), (s) => borrowers.value = s.docs.map(d => ({id: d.id, ...d.data()})));
-  onSnapshot(query(collection(db, "history"), orderBy("createdAt", "desc")), (s) => {
+  onSnapshot(query(collection(db, "history"), orderBy("timestamp", "desc")), (s) => {
     history.value = s.docs.map(d => ({id: d.id, ...d.data()}));
     dbStatus.value = 'online';
   }, () => dbStatus.value = 'offline');
 };
 
-// Handlers for Collections Transfer
 const handleAction = async (notif, status) => {
-  const data = { ...notif, status, createdAt: serverTimestamp() };
+  const data = { ...notif, status, timestamp: new Date().toISOString() };
   delete data.id;
 
   try {
@@ -213,13 +213,12 @@ const handleAction = async (notif, status) => {
     } else {
       await addDoc(collection(db, "history"), data);
     }
-    // Remove from active notifications
     await deleteDoc(doc(db, "notifications", notif.id));
   } catch (err) { console.error(err); }
 };
 
 const handleReturn = async (borrower) => {
-  const data = { ...borrower, status: 'returned', createdAt: serverTimestamp() };
+  const data = { ...borrower, status: 'returned', timestamp: new Date().toISOString() };
   delete data.id;
 
   try {
@@ -228,9 +227,16 @@ const handleReturn = async (borrower) => {
   } catch (err) { console.error(err); }
 };
 
-// Computed
-const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase().includes(searchQuery.value.toLowerCase())));
+const formatLogTime = (isoString) => {
+  const date = new Date(isoString);
+  return date.toLocaleString('en-US', { 
+    month: 'short', day: 'numeric', 
+    hour: '2-digit', minute: '2-digit', 
+    hour12: true 
+  });
+};
 
+const filteredBooks = computed(() => books.value.filter(b => b.title.toLowerCase().includes(searchQuery.value.toLowerCase())));
 const updateTime = () => { currentTime.value = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' }); };
 
 let timer;
@@ -242,6 +248,25 @@ const confirmDelete = async (id) => { await deleteDoc(doc(db, "books", id)); };
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+/* Page Fade */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* List Animations (Fade In, Fade Out, Slide) */
+.list-enter-active, .list-leave-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* Ensure items don't jump when others are leaving */
+.list-move {
+  transition: transform 0.5s ease;
+}
 </style>
