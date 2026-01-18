@@ -1,24 +1,33 @@
 <template>
   <div class="bg-black min-h-screen selection:bg-white/30 overflow-hidden font-ios text-white flex items-center justify-center">
     
-    <!-- GREETING SEQUENCE -->
-    <transition name="greeting-fade">
-      <div v-if="showGreeting" class="fixed inset-0 z-[300] bg-black flex items-center justify-center">
-        <transition name="word-rotate" mode="out-in">
-          <h2 :key="greetings[greetingIndex]" class="text-5xl md:text-7xl font-bold tracking-tighter italic">
-            {{ greetings[greetingIndex] }}
-          </h2>
-        </transition>
-      </div>
-    </transition>
-
     <!-- INITIAL SYSTEM LOADER -->
     <transition name="loader-fade">
-      <div v-if="isSystemLoading && !showGreeting" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
+      <div v-if="isSystemLoading" class="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
         <div class="ios-spinner">
           <div v-for="i in 12" :key="i" :class="'bar' + i"></div>
         </div>
-        <p class="mt-8 text-white/40 text-[10px] tracking-[0.4em] uppercase font-bold animate-pulse">Synchronizing AKLAT Cloud</p>
+        <p class="mt-8 text-white/40 text-[10px] tracking-[0.4em] uppercase font-bold animate-pulse">Initializing AKLAT Cloud</p>
+      </div>
+    </transition>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <transition name="modal-fade">
+      <div v-if="showForgotModal" class="fixed inset-0 z-[400] flex items-center justify-center p-6 backdrop-blur-md bg-black/40">
+        <div class="bg-zinc-900 border border-white/10 p-8 rounded-[2rem] max-w-sm w-full shadow-2xl text-center space-y-6">
+          <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-xl font-semibold">Feature Unavailable</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Account recovery is currently disabled in the beta environment. Please contact your system administrator.</p>
+          </div>
+          <button @click="showForgotModal = false" class="w-full py-4 bg-white text-black font-bold rounded-xl active:scale-95 transition-transform">
+            Understood
+          </button>
+        </div>
       </div>
     </transition>
 
@@ -26,12 +35,21 @@
     <transition name="page-swap" mode="out-in">
       
       <!-- AUTHENTICATION VIEW -->
-      <div v-if="!currentView && !isSystemLoading && !showGreeting" key="auth" class="w-full min-h-screen relative flex items-center justify-center p-6">
+      <div v-if="!currentView && !isSystemLoading" key="auth" class="w-full min-h-screen relative flex items-center justify-center p-6">
         
-        <!-- BACKDROP AMBIENCE -->
+        <!-- BACKDROP AMBIENCE: FLOATING CIRCLES & BLINKING DOTS -->
         <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div class="orb orb-1"></div>
-          <div class="orb orb-2"></div>
+          <div class="floating-circle circle-1"></div>
+          <div class="floating-circle circle-2"></div>
+          <div class="floating-circle circle-3"></div>
+          
+          <!-- Blinking Dots Grid -->
+          <div class="absolute inset-0 grid grid-cols-6 md:grid-cols-12 gap-4 p-4 opacity-20">
+            <div v-for="n in 48" :key="n" class="dot-container flex items-center justify-center">
+              <div class="w-1 h-1 bg-white rounded-full animate-blink" :style="{ animationDelay: (n * 0.1) + 's' }"></div>
+            </div>
+          </div>
+          
           <div class="absolute inset-0 opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
         </div>
 
@@ -40,13 +58,13 @@
           <!-- AUTH FORM CONTAINER -->
           <div class="w-full max-w-md order-2 lg:order-1">
             <div 
-              class="relative backdrop-blur-3xl bg-zinc-900/40 border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              class="relative backdrop-blur-3xl bg-zinc-900/40 border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
               :style="{ height: containerHeight + 'px' }"
             >
-              <transition name="form-morph" mode="out-in" @enter="updateHeight">
+              <transition name="form-morph" mode="out-in" @after-enter="updateHeight" @enter="updateHeight">
                 
                 <!-- SIGN UP FORM -->
-                <div v-if="!isLogin" key="signup" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
+                <div v-if="!isLogin" key="signup" class="auth-card p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
                     <h2 class="text-3xl font-semibold text-white tracking-tight">Create Account</h2>
                     <p class="text-zinc-500 text-sm">Join the digital library network.</p>
@@ -66,7 +84,7 @@
                 </div>
 
                 <!-- SIGN IN FORM -->
-                <div v-else key="login" class="p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
+                <div v-else key="login" class="auth-card p-10 md:p-12 space-y-8 flex flex-col items-center text-center w-full">
                   <header class="space-y-2">
                     <h2 class="text-3xl font-semibold text-white tracking-tight">Sign In</h2>
                     <p class="text-zinc-500 text-sm">Access your personal archive.</p>
@@ -76,6 +94,11 @@
                       <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Email" />
                       <input v-model="form.password" type="password" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-white/40 transition-all placeholder-zinc-700" placeholder="Password" />
                     </div>
+                    
+                    <div class="flex justify-end">
+                      <button type="button" @click="showForgotModal = true" class="text-xs text-zinc-500 hover:text-white transition-colors">Forgot Password?</button>
+                    </div>
+
                     <button type="submit" :disabled="authLoading" class="w-full py-5 bg-white text-black font-bold rounded-2xl active:scale-[0.98] disabled:opacity-50">
                       {{ authLoading ? 'Identifying...' : 'Continue' }}
                     </button>
@@ -115,20 +138,20 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 // UI Logic State
 const currentView = ref(null);
 const isSystemLoading = ref(true);
-const showGreeting = ref(true);
 const authLoading = ref(false);
 const isLogin = ref(true);
 const errorMsg = ref('');
-const containerHeight = ref(580);
-const greetingIndex = ref(0);
-const greetings = ["Hello", "Bonjour", "Hola", "Mabuhay", "AKLAT"];
+const containerHeight = ref(0);
+const showForgotModal = ref(false);
 const form = reactive({ name: '', email: '', password: '' });
 
 // Update card height for smooth form morphing
 const updateHeight = () => {
   nextTick(() => {
-    const activeEl = document.querySelector('.p-10');
-    if (activeEl) containerHeight.value = activeEl.offsetHeight;
+    const activeEl = document.querySelector('.auth-card');
+    if (activeEl) {
+      containerHeight.value = activeEl.scrollHeight;
+    }
   });
 };
 
@@ -137,42 +160,22 @@ const toggleForm = (val) => {
   isLogin.value = val;
 };
 
-// Start the intro animation
-const startGreetingSequence = () => {
-  const interval = setInterval(() => {
-    if (greetingIndex.value < greetings.length - 1) {
-      greetingIndex.value++;
-    } else {
-      clearInterval(interval);
-      setTimeout(() => { 
-        showGreeting.value = false; 
-        // Small delay before revealing content
-        setTimeout(() => { isSystemLoading.value = false; }, 800);
-      }, 800);
-    }
-  }, 800);
-};
-
 const handleSignup = async () => {
   authLoading.value = true;
   errorMsg.value = "";
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-    
-    // Create initial user record in Firestore
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: form.email,
       fullName: form.name,
       role: form.email.toLowerCase().includes('admin') ? 'Admin' : 'Member',
-      createdAt: serverTimestamp(),
-      lastActive: serverTimestamp()
+      createdAt: serverTimestamp()
     });
-    
-    // Auto login flow is handled by onAuthStateChanged
   } catch (err) { 
     errorMsg.value = err.message; 
   } finally { 
     authLoading.value = false; 
+    updateHeight();
   }
 };
 
@@ -182,25 +185,25 @@ const handleLogin = async () => {
   try {
     await signInWithEmailAndPassword(auth, form.email, form.password);
   } catch (err) { 
-    errorMsg.value = "Identity verification failed. Please check credentials."; 
+    errorMsg.value = "Invalid login credentials."; 
   } finally { 
     authLoading.value = false; 
+    updateHeight();
   }
 };
 
 const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    currentView.value = null;
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
+  await signOut(auth);
+  currentView.value = null;
 };
 
 onMounted(() => {
-  startGreetingSequence();
-  
-  // Auth state observer
+  // Simulate system check
+  setTimeout(() => {
+    isSystemLoading.value = false;
+    nextTick(updateHeight);
+  }, 1500);
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentView.value = user.email.toLowerCase().includes('admin') ? 'admin' : 'user';
@@ -224,16 +227,8 @@ onMounted(() => {
   -webkit-text-fill-color: transparent; 
 }
 
-/* ANIMATIONS: GREETING */
-.greeting-fade-leave-active { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); }
-.greeting-fade-leave-to { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-
-.word-rotate-enter-active, .word-rotate-leave-active { transition: all 0.4s ease; }
-.word-rotate-enter-from { opacity: 0; transform: translateY(15px); filter: blur(5px); }
-.word-rotate-leave-to { opacity: 0; transform: translateY(-15px); filter: blur(5px); }
-
 /* ANIMATIONS: SYSTEM LOADER */
-.loader-fade-leave-active { transition: opacity 0.6s ease; }
+.loader-fade-leave-active { transition: opacity 0.8s ease; }
 .loader-fade-leave-to { opacity: 0; }
 
 .ios-spinner { position: relative; width: 32px; height: 32px; }
@@ -253,17 +248,31 @@ onMounted(() => {
 .bar11 { transform: rotate(300deg) translate(0, -100%); animation-delay: -0.166s !important; }
 .bar12 { transform: rotate(330deg) translate(0, -100%); animation-delay: -0.083s !important; }
 
-/* ANIMATIONS: FORM AND UI */
-.form-morph-enter-active, .form-morph-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-.form-morph-enter-from { opacity: 0; transform: scale(0.98) translateY(10px); }
-.form-morph-leave-to { opacity: 0; transform: scale(0.98) translateY(-10px); }
+/* FLOATING CIRCLES BACKGROUND */
+.floating-circle { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15; animation: float 20s infinite alternate ease-in-out; }
+.circle-1 { width: 500px; height: 500px; background: white; top: -100px; left: -100px; }
+.circle-2 { width: 600px; height: 600px; background: #3f3f46; bottom: -200px; right: -100px; animation-duration: 25s; }
+.circle-3 { width: 300px; height: 300px; background: white; top: 40%; left: 60%; animation-duration: 15s; }
 
-.page-swap-enter-active, .page-swap-leave-active { transition: opacity 0.5s ease; }
-.page-swap-enter-from, .page-swap-leave-to { opacity: 0; }
+@keyframes float {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(100px, 50px) scale(1.1); }
+}
 
-.orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.1; pointer-events: none; }
-.orb-1 { width: 800px; height: 800px; background: radial-gradient(circle, #ffffff 0%, transparent 70%); top: -400px; left: -200px; }
-.orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, #52525b 0%, transparent 70%); bottom: -300px; right: -100px; }
+@keyframes blink {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+.animate-blink { animation: blink 4s infinite ease-in-out; }
+
+/* MODAL TRANSITION */
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; transform: scale(1.05); }
+
+/* FORM MORPH */
+.form-morph-enter-active, .form-morph-leave-active { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+.form-morph-enter-from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(10px); }
+.form-morph-leave-to { opacity: 0; transform: translateY(-20px) scale(0.98); filter: blur(10px); }
 
 @keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .animate-reveal { opacity: 0; animation: reveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
