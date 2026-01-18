@@ -202,12 +202,9 @@
     <transition name="fade">
       <div v-if="showReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
         <div v-if="targetBorrower" class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <div class="w-16 h-16 bg-blue-600/20 text-blue-500 mx-auto rounded-full flex items-center justify-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-          </div>
           <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Mark Returned?</h3>
           <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">
-            Record return for "{{ targetBorrower.bookTitle }}" by {{ targetBorrower.userEmail }}.
+            Record return for "{{ targetBorrower.bookTitle }}".
           </p>
           <div class="flex gap-3">
             <button @click="showReturnModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">No</button>
@@ -224,22 +221,6 @@
           <textarea v-model="batchTitleInput" placeholder="Enter book titles (one per line)" rows="5" class="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 px-6 text-white outline-none font-bold mb-4 text-xs resize-none"></textarea>
           <button @click="batchAddBooks" :disabled="!batchTitleInput" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Add to Repository</button>
           <button @click="showAddModal = false" class="w-full py-4 text-zinc-600 font-bold uppercase text-[9px] mt-1">Cancel Action</button>
-        </div>
-      </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl px-6">
-        <div class="bg-zinc-950 border border-white/10 p-10 rounded-[2.5rem] max-w-xs w-full text-center">
-          <div class="w-16 h-16 bg-red-600/20 text-red-600 mx-auto rounded-full flex items-center justify-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </div>
-          <h3 class="text-xl font-black mb-2 uppercase tracking-tighter">Purge Data?</h3>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase mb-8 tracking-widest leading-relaxed">You are about to delete {{ selectedBooks.length }} selected items.</p>
-          <div class="flex gap-3">
-            <button @click="showDeleteModal = false" class="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-zinc-500 text-[10px] uppercase">Abort</button>
-            <button @click="deleteSelectedBooks" class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase">Confirm</button>
-          </div>
         </div>
       </div>
     </transition>
@@ -353,48 +334,35 @@ const toggleSelectBook = (id) => {
   else selectedBooks.value.push(id);
 };
 
-const deleteSelectedBooks = async () => {
-  const batch = writeBatch(db);
-  selectedBooks.value.forEach(id => batch.delete(doc(db, "books", id)));
-  await batch.commit();
-  selectedBooks.value = [];
-  showDeleteModal.value = false;
-};
-
-// 🛠️ FIXED APPROVE: SIGURADONG LILITAW SA BORROWERS PAGE
+// 🛠️ SIMPLE APPROVE: FIXED AND RELIABLE
 const approveRequest = async (req) => {
   try {
-    const batch = writeBatch(db);
-    
-    // 1. Update status ng request
-    const requestRef = doc(db, "notifications", req.id);
-    batch.update(requestRef, { status: 'approved' });
+    // 1. Update ang existing notification sa Firestore
+    await updateDoc(doc(db, "notifications", req.id), { status: 'approved' });
 
-    // 2. Add sa borrowers collection
-    const borrowerRef = doc(collection(db, "borrowers"));
-    batch.set(borrowerRef, {
+    // 2. I-record ang active borrower
+    await addDoc(collection(db, "borrowers"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
       userId: req.userId,
-      originalRequestId: req.id, // Para sa pag-return
-      returnSchedule: req.returnDate,
+      originalRequestId: req.id,
+      returnSchedule: req.returnDate || '2026-01-25', // Fallback date if null
       status: 'approved',
       approvedAt: serverTimestamp()
     });
 
-    // 3. Log sa history
-    const historyRef = doc(collection(db, "history"));
-    batch.set(historyRef, {
+    // 3. I-log sa system history
+    await addDoc(collection(db, "history"), {
       bookTitle: req.bookTitle,
       userEmail: req.userEmail,
       status: 'approved',
       createdAt: serverTimestamp()
     });
 
-    await batch.commit();
-    console.log("Approved and added to borrowers! ✅");
-  } catch (e) {
-    console.error("Approve error:", e);
+    console.log("Success: Request Approved! ✅");
+  } catch (err) {
+    console.error("Critical Approval Error:", err);
+    alert("Error: " + err.message);
   }
 };
 
@@ -409,49 +377,30 @@ const confirmReturn = (person) => {
   showReturnModal.value = true;
 };
 
-// 🛠️ FIXED RETURN: SIGURADONG MATATANGGAL SA PAREHONG SIDES
 const executeReturn = async () => {
   if (!targetBorrower.value) return;
   const { id, bookTitle, userEmail, userId, originalRequestId } = targetBorrower.value;
 
   try {
-    const batch = writeBatch(db);
+    await deleteDoc(doc(db, "borrowers", id));
 
-    // 1. Tanggalin sa borrowers (Admin Side)
-    batch.delete(doc(db, "borrowers", id));
-
-    // 2. I-archive ang original notification (User Side)
     if (originalRequestId) {
-      batch.update(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
-    } else {
-      // Backup sync if originalRequestId is missing
-      const q = query(collection(db, "notifications"), 
-                where("userId", "==", userId), 
-                where("bookTitle", "==", bookTitle), 
-                where("status", "==", "approved"));
-      const snapshot = await getDocs(q);
-      snapshot.forEach(d => batch.update(doc(db, "notifications", d.id), { status: 'returned_archive' }));
+      await updateDoc(doc(db, "notifications", originalRequestId), { status: 'returned_archive' });
     }
 
-    // 3. Bagong notification for User Inbox
-    const newNotifRef = doc(collection(db, "notifications"));
-    batch.set(newNotifRef, {
+    await addDoc(collection(db, "notifications"), {
       userId, bookTitle, userEmail,
       message: "The librarian set your book to returned.",
       status: 'returned_by_admin',
       createdAt: serverTimestamp()
     });
 
-    // 4. Log history
-    const logRef = doc(collection(db, "history"));
-    batch.set(logRef, { bookTitle, userEmail, status: 'returned', createdAt: serverTimestamp() });
+    await addDoc(collection(db, "history"), { bookTitle, userEmail, status: 'returned', createdAt: serverTimestamp() });
 
-    await batch.commit();
     showReturnModal.value = false;
     targetBorrower.value = null;
-    console.log("Returned successfully! 🧹");
-  } catch (e) {
-    console.error("Return error:", e);
+  } catch (err) {
+    console.error("Return Error:", err);
   }
 };
 
